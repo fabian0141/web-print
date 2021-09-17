@@ -1,0 +1,40 @@
+#the-canvas {
+  border: 1px solid black;
+  direction: ltr;
+  width: 96%;
+  background-color: #f7f7f7;
+}
+
+#preview {
+  width: 70%;
+  margin: 2%;
+  background-color: white;
+  box-shadow: 0 0 10px 10px rgba(0, 0, 0, 0.2), 0 0 10px 10px rgba(0, 0, 0, 0.19);
+  padding: 2%;
+}
+
+#options {
+  padding: 2%;
+  width: 26%;
+  background-color: #D7FFDE;
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+}
+
+#background {
+  background-color: 43A080;
+}
+
+#title {
+  text-align: center;
+}
+
+#pageNumber {
+  margin: 0 20% 0 20%;
+}
+
+.pageButton {
+  width: 120px;
+}
