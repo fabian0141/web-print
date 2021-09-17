@@ -1,0 +1,80 @@
+<html>
+    <head>
+        <title>HFK Web Printer</title>
+        <link rel="stylesheet" href="stylesheet.css">
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    </head>
+
+    <body id="background">
+        <script src="jquery-3.6.0.js"></script>
+        <script src="//mozilla.github.io/pdf.js/build/pdf.js"></script>
+
+        <form action="/print" enctype="multipart/form-data" method="post">
+
+            <div>
+
+                <div id="preview">
+
+                    <h1 id="title">PDF Online Printer</h1>
+
+                    <label for="inputFile"><canvas id="the-canvas"></canvas><br><br></label>
+                    <div style="text-align: center;width: 100%;">
+                        <input  class="w3-button w3-brown w3-round" type="file" id="inputFile" name="filename" value="PDF auswählen" accept="application/pdf"><br><br>
+                    
+                        <div>
+                            <button type="button" class="w3-button w3-brown w3-round pageButton" id="prev">Previous</button>
+                            &nbsp; &nbsp;
+                            <span id="pageNumber">Page: <span id="page_num"></span> / <span id="page_count"></span></span>
+                            <button type="button" class="w3-button w3-brown w3-round pageButton" id="next">Next</button>
+    
+                        </div>
+                    </div>
+
+                    
+                </div>
+
+                <div id="options">
+
+                    <label for="user">Nutzername:</label><br>
+                    <input type="text" id="user" name="user name"><br><br>
+    
+                    <label for="password">Passwort:</label><br>
+                    <input type="password" id="password" name="password"><br><br>
+
+                    <div style="background-color: black; width: 110%; height: 1px;margin-left:-5%"></div><br><br>
+
+                    <label for="pages">Seiten Nummern:</label><br>
+                    <input type="text" id="pages" name="page numbers"><br><br>
+    
+                    <label for="copies">Anzahl an Kopien:</label><br>
+                    <input type="text" id="copies" name="copy number" value="1"><br><br>
+    
+                    <label>Farbwahl:</label><br>
+                    <input type="radio" id="blackwhite" name="color" checked><label for="blackwhite">Schwarz/Weiß</label><br>
+                    <input type="radio" id="colored" name="color"><label for="colored">Farblich</label><br><br>
+    
+                    <label for="onesided">Seiten Art:</label><br>
+                    <input type="radio" id="onesided" name="sides" checked><label for="onesided">Einseitig</label><br>
+                    <input type="radio" id="twosided" name="sides"><label for="twosided">Doppelseitig</label><br><br>
+    
+                    <label for="high-res">Auflösung:</label><br>
+                    <input type="radio" id="high-res" name="res"><label for="high-res">Hohe Auflösung</label><br>
+                    <input type="radio" id="mid-res" name="res" checked><label for="mid-res">Normale Auflösung</label><br>
+                    <input type="radio" id="low-res" name="res"><label for="low-res">Niedrige Auflösung</label><br><br>
+    
+                    <label for="portrait">Orientierung:</label><br>
+                    <input type="radio" id="portrait" name="orientation" checked><label for="portrait">Vertikal</label><br>
+                    <input type="radio" id="landscape" name="orientation"><label for="landscape">Horizontal</label><br><br>
+    
+                    <input class="w3-button w3-brown w3-round" type="submit" value="Drucken">
+                </div>
+            </div>
+        </form>
+
+
+
+
+    </body>
+</html>
+
+<script src="controller.js"></script>
