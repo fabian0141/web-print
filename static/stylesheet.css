@@ -1,40 +1,189 @@
 #the-canvas {
-  border: 1px solid black;
-  direction: ltr;
-  width: 96%;
-  background-color: #f7f7f7;
-}
-
-#preview {
-  width: 70%;
-  margin: 2%;
-  background-color: white;
-  box-shadow: 0 0 10px 10px rgba(0, 0, 0, 0.2), 0 0 10px 10px rgba(0, 0, 0, 0.19);
-  padding: 2%;
-}
-
-#options {
-  padding: 2%;
-  width: 26%;
-  background-color: #D7FFDE;
-  position: fixed;
-  right: 0;
-  top: 0;
-  bottom: 0;
+	border: 1px solid black;
+	direction: ltr;
+	min-width: 100%;
+	background-color: #f7f7f7;
 }
 
 #background {
-  background-color: 43A080;
+	background-color: 43A080;
 }
 
 #title {
-  text-align: center;
+	text-align: center;
 }
 
-#pageNumber {
-  margin: 0 20% 0 20%;
+#dragNdropFile {
+	background-color: rgba(0.1,0.1,0.1,0.3);
+	left: 0;
+	right: 300px;
+	height: 100%;
+	align-items: center;
+	justify-content: center;
+	position: absolute;
+	display: none;"
 }
 
-.pageButton {
-  width: 120px;
+
+@media screen and (min-width: 601px) {
+
+	#pdfArea {
+		position: absolute;
+		width:  96%;
+		top: 120px;
+		bottom: 150px;
+		overflow: scroll
+	}
+
+	#the-canvas {
+		border: 1px solid black;
+		direction: ltr;
+		min-width: 100%;
+		background-color: #f7f7f7;
+	}
+
+	#preview {
+		position: absolute;
+		left: 0;	
+		right: 300px;
+		top: 0;
+		bottom: 0;
+		margin: 2%;
+		background-color: white;
+		box-shadow: 0 0 10px 10px rgba(0, 0, 0, 0.2), 0 0 10px 10px rgba(0, 0, 0, 0.19);
+		padding: 2%;
+	}
+
+	#options {
+		padding: 2%;
+		width: 300px;
+		background-color: #D7FFDE;
+		position: fixed;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		overflow-y: auto;
+	}
+
+	#previewControlls {
+		position: absolute; 
+		text-align: center;
+		width: 93%; 
+		bottom: 30px;
+	}
+
+	#pageNumber {
+		margin: 0 20% 0 20%;
+	}
+
+	#seperator {
+		background-color: black; 
+		width: 110%;
+		height: 1px;
+		margin-left:-5%
+	}
+
+	.pageButton {
+		width: 120px;
+	}
+
+	#printProgressView {
+		background-color: rgba(0.1,0.1,0.1,0.3);
+		left: 0;right: 300px;
+		height: 100%;
+		align-items: center;
+		justify-content: center;
+		position: absolute;
+		display: none
+	}
+
+	#progressViewPanel {
+		width: 400px;
+		height: 250px;
+		background-color: #fdfdfd;
+		border-radius: 5px;
+		margin: 6% auto;
+		text-align: center;
+		padding: 15px
+	}
+}
+
+@media screen and (max-width: 600px) {
+
+	#pdfArea {
+		position: absolute;
+		margin-left: 1%;
+		width:  98%;
+		top: 120px;
+		bottom: 150px;
+		overflow: scroll
+	}
+
+	#the-canvas {
+		border: 1px solid black;
+		direction: ltr;
+		min-width: 100%;
+		background-color: #f7f7f7;
+	}
+
+	#preview {
+		margin: 2%;
+		position: absolute;
+		width: 96%;
+		height: 570px;
+		padding: : 5%;
+		background-color: white;
+		box-shadow: 0 0 10px 10px rgba(0, 0, 0, 0.2), 0 0 10px 10px rgba(0, 0, 0, 0.19);
+	}
+
+  	#options {
+  		position: absolute; 
+  		top: 600px;
+		padding: 5%;
+		width: 100%;
+		background-color: #D7FFDE;
+	}
+
+	#previewControlls {
+		position: absolute; 
+		text-align: center;
+		width: 100%; 
+		bottom: 30px;
+	}
+
+	#pageNumber {
+		margin: 0 5% 0 5%;
+	}
+
+	#seperator {
+		background-color: black; 
+		width: 104%;
+		height: 1px;
+		margin-left:-2%
+
+	}
+
+	.pageButton {
+		width: 100px;
+	}
+
+	#printProgressView {
+		background-color: rgba(0.1,0.1,0.1,0.3);
+		left: 0;right: 0;
+		height: 100%;
+		align-items: center;
+		justify-content: center;
+		position: fixed;
+		display: none
+	}
+
+	#progressViewPanel {
+		width: 96%;
+		height: 250px;
+		background-color: #fdfdfd;
+		border-radius: 5px;
+		margin: 6% 2%;
+		text-align: center;
+		padding: 15px
+	}
 }
