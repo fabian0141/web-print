@@ -1,80 +1,103 @@
 <html>
-    <head>
-        <title>HFK Web Printer</title>
-        <link rel="stylesheet" href="stylesheet.css">
-        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-    </head>
+<head>
+    <title>HFK Web Printer</title>
+    <link rel="stylesheet" href="static/stylesheet.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
 
-    <body id="background">
-        <script src="jquery-3.6.0.js"></script>
-        <script src="//mozilla.github.io/pdf.js/build/pdf.js"></script>
+<body id="background">
+    <script src="static/jquery-3.6.0.js"></script>
+    <script src="//mozilla.github.io/pdf.js/build/pdf.js"></script>
 
-        <form action="/print" enctype="multipart/form-data" method="post">
+    <form id="printForm" action="/print" enctype="multipart/form-data" method="post">
+        <div>
+            <div id="preview">
+                <h1 id="title">PDF Online Printer</h1>
 
-            <div>
+                <div id="pdfArea">
+                 <label><canvas id="the-canvas"></canvas><br><br></label>
+             </div>
 
-                <div id="preview">
+             <div id="previewControlls">
+                 <input  class="w3-button w3-brown w3-round" type="file" id="inputFile" name="filename" value="PDF auswählen" accept="application/pdf" required><br><br>
 
-                    <h1 id="title">PDF Online Printer</h1>
-
-                    <label for="inputFile"><canvas id="the-canvas"></canvas><br><br></label>
-                    <div style="text-align: center;width: 100%;">
-                        <input  class="w3-button w3-brown w3-round" type="file" id="inputFile" name="filename" value="PDF auswählen" accept="application/pdf"><br><br>
-                    
-                        <div>
-                            <button type="button" class="w3-button w3-brown w3-round pageButton" id="prev">Previous</button>
-                            &nbsp; &nbsp;
-                            <span id="pageNumber">Page: <span id="page_num"></span> / <span id="page_count"></span></span>
-                            <button type="button" class="w3-button w3-brown w3-round pageButton" id="next">Next</button>
-    
-                        </div>
-                    </div>
-
-                    
-                </div>
-
-                <div id="options">
-
-                    <label for="user">Nutzername:</label><br>
-                    <input type="text" id="user" name="user name"><br><br>
-    
-                    <label for="password">Passwort:</label><br>
-                    <input type="password" id="password" name="password"><br><br>
-
-                    <div style="background-color: black; width: 110%; height: 1px;margin-left:-5%"></div><br><br>
-
-                    <label for="pages">Seiten Nummern:</label><br>
-                    <input type="text" id="pages" name="page numbers"><br><br>
-    
-                    <label for="copies">Anzahl an Kopien:</label><br>
-                    <input type="text" id="copies" name="copy number" value="1"><br><br>
-    
-                    <label>Farbwahl:</label><br>
-                    <input type="radio" id="blackwhite" name="color" checked><label for="blackwhite">Schwarz/Weiß</label><br>
-                    <input type="radio" id="colored" name="color"><label for="colored">Farblich</label><br><br>
-    
-                    <label for="onesided">Seiten Art:</label><br>
-                    <input type="radio" id="onesided" name="sides" checked><label for="onesided">Einseitig</label><br>
-                    <input type="radio" id="twosided" name="sides"><label for="twosided">Doppelseitig</label><br><br>
-    
-                    <label for="high-res">Auflösung:</label><br>
-                    <input type="radio" id="high-res" name="res"><label for="high-res">Hohe Auflösung</label><br>
-                    <input type="radio" id="mid-res" name="res" checked><label for="mid-res">Normale Auflösung</label><br>
-                    <input type="radio" id="low-res" name="res"><label for="low-res">Niedrige Auflösung</label><br><br>
-    
-                    <label for="portrait">Orientierung:</label><br>
-                    <input type="radio" id="portrait" name="orientation" checked><label for="portrait">Vertikal</label><br>
-                    <input type="radio" id="landscape" name="orientation"><label for="landscape">Horizontal</label><br><br>
-    
-                    <input class="w3-button w3-brown w3-round" type="submit" value="Drucken">
+                 <div>
+                    <button type="button" class="w3-button w3-brown w3-round pageButton" id="prev">Voriges</button>
+                    <span id="pageNumber">Seite: <span id="pageNum"></span> / <span id="pageCount"></span></span>
+                    <button type="button" class="w3-button w3-brown w3-round pageButton" id="next">Nächstes</button>
                 </div>
             </div>
-        </form>
+        </div>
+
+        <div id="options">
+
+            <label for="user">Nutzername:</label><br>
+            <input type="text" id="user" name="username" autocomplete="username" required><br><br>
+
+            <label for="password">Passwort:</label><br>
+            <input type="password" id="password" name="password" autocomplete="current-password" required><br><br>
+
+            <div id="seperator"></div><br><br>
+
+                <label for="cars">Wähle einen Drucker:</label><br>
+                <select name="printers" id="printers" onchange="printerChanged()">
+                    {{range .Printers}}
+                        <option>{{.}}</option>
+                    {{end}}
+                </select><br><br>
+
+                 <label for="pages">Seiten Nummern:</label><br>
+                 <input type="text" id="pages" name="page numbers" pattern="|([1-9][0-9]*(-[1-9][0-9]*){0,1}(,[1-9][0-9]*(-[1-9][0-9]*){0,1})*)"
+                 title="Wähle einzelne Seiten durch ',' separiert aus oder mehrere Seiten mit '-' durch z.B.'1-3,5,7-8' um Die Seiten 1 bis 3, 5 und 7 bis 8 zu drucken" placeholder="1-3,5,7-8" onchange="pagesSelectionChanged()"><br><br>
+
+                 <label for="copies">Anzahl an Kopien:</label><br>
+                 <input type="number" id="copies" name="copy number" min="1" value="1"><br><br>
 
 
+                 <label>Farbwahl:</label><br>
+                 <input type="radio" id="blackwhite" value="monochrome" name="color" checked><label for="blackwhite" id="blackwhitelabel"> Schwarz/Weiß</label><br>
+                 <input type="radio" id="colored" value="color"  name="color"><label for="colored" id="coloredlabel"> Farblich</label><br><br>
 
+                 <label>Seiten Art:</label><br>
+                 <input type="radio" id="onesided" value="one-sided" name="sides" checked><label for="onesided"> Einseitig</label><br>
+                 <input type="radio" id="twosided" value="two-sided-long-edge" name="sides"><label for="twosided" id="twosidedlabel"> Doppelseitig</label><br><br>
 
-    </body>
+                 <label>Auflösung:</label><br>
+                 <input type="radio" id="high-res" value="5" name="res"><label for="high-res"> Hohe Auflösung</label><br>
+                 <input type="radio" id="mid-res" value="4" name="res" checked><label for="mid-res"> Normale Auflösung</label><br>
+                 <input type="radio" id="low-res" value="3" name="res"><label for="low-res"> Niedrige Auflösung</label><br><br>
+
+                 <label for="portrait">Orientierung:</label><br>
+                 <input type="radio" id="portrait" value="3" name="orientation" checked><label for="portrait"> Vertikal</label><br>
+                 <input type="radio" id="landscape" value="4" name="orientation"><label for="landscape"> Horizontal</label><br><br>
+
+                 <input class="w3-button w3-brown w3-round" type="submit" value="Drucken">
+            </div>
+        </div>
+    </form>
+
+ <div id="dragNdropFile">
+    <div>
+        <div style="text-align: center">
+            <img src="static/upload_icon.svg" width="200px">
+        </div>
+        <h1 style="font-size: 50px"><b>Füge Dokument hinzu</b></h1>
+    </div>
+</div>
+
+<div id="printProgressView">
+    <div id="progressViewPanel">
+        <h3><b>Drucker Fortschritt</b></h3>
+        <div style="height: 125px">
+            <h5 style="float: left;">Druckstatus:&nbsp;&nbsp;<span id="printState">Druck wird vorbereitet</span></h5><br><br><br>                    
+        </div>
+        <button style="float: left;" class="w3-button w3-brown w3-round" onclick="cancelPrintJob()">Druckauftrag abbrechen</button>
+        <button style="float: right;" class="w3-button w3-brown w3-round" onclick="hidePrintProgressView()">Schliessen</button>
+    </div>
+</div>
+
+</body>
 </html>
 
-<script src="controller.js"></script>
+<script src="static/controller.js"></script>
