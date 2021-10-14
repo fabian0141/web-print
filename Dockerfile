@@ -29,10 +29,6 @@ COPY cupscli.conf .
 # Copy statics
 COPY static/ ./static/
 
-# Set password for root to modify cups via webinterface
-# TODO: Change and docker secret
-RUN echo 'root:cupsadmin' | chpasswd
-
 # Run the app
 EXPOSE 8080
 EXPOSE 631
