@@ -21,9 +21,81 @@
 	align-items: center;
 	justify-content: center;
 	position: absolute;
-	display: none;"
+	display: none;
 }
 
+
+#jobsTable {
+	border-collapse: collapse;
+	text-align: left;
+	margin: 2% 10%;
+	width:80%;
+	font-size: 1.5em;
+}
+
+tr:last-child { 
+    border-bottom: none; 
+}
+tr {
+    border-bottom: 1px solid black;
+}
+
+td {
+	padding: 20px 0;
+}
+
+#furtherPrint {
+	margin-left: 10%;
+	font-size: 1.5em;
+	text-decoration:none;
+}
+
+#moreOptions {
+	text-decoration: underline;
+	border: 0;
+	background: transparent;
+	display: block;
+}
+
+#moreOptions:hover {
+	color: grey;
+}
+
+#additionalOptions {
+	display: none;
+}
+
+#lessOptions {
+	text-decoration: underline;
+	border: 0;
+	background: transparent;
+	display: block;
+}
+
+#lessOptions:hover {
+	color: grey;
+}
+
+#infoview {
+	display:inline
+}
+
+#infoview #displayinfo {
+	display: none;
+	width: 400px;
+	position: absolute;
+	font-size: 20px;
+	z-index: 5;
+	border: 3px;
+	border-style: inset;
+	background-color: ivory;
+	border-color: darkgrey;
+	padding: 5px;
+}
+
+#infoview:hover #displayinfo {
+	display: inline;
+}
 
 @media screen and (min-width: 601px) {
 
@@ -49,6 +121,20 @@
 		top: 0;
 		bottom: 0;
 		margin: 2%;
+		background-color: white;
+		box-shadow: 0 0 10px 10px rgba(0, 0, 0, 0.2), 0 0 10px 10px rgba(0, 0, 0, 0.19);
+		padding: 2%;
+	}
+
+	#jobsBackground {
+		background-color: 43A080;
+		padding: 2%;
+		min-height: 100%;
+	}
+
+	#jobsView {
+		width: 100%;
+		min-height: 100%;
 		background-color: white;
 		box-shadow: 0 0 10px 10px rgba(0, 0, 0, 0.2), 0 0 10px 10px rgba(0, 0, 0, 0.19);
 		padding: 2%;
@@ -131,7 +217,17 @@
 		position: absolute;
 		width: 96%;
 		height: 570px;
-		padding: : 5%;
+		padding: 5%;
+		background-color: white;
+		box-shadow: 0 0 10px 10px rgba(0, 0, 0, 0.2), 0 0 10px 10px rgba(0, 0, 0, 0.19);
+	}
+
+	#jobsView {
+		margin: 2%;
+		position: absolute;
+		width: 96%;
+		height: 570px;
+		padding: 5%;
 		background-color: white;
 		box-shadow: 0 0 10px 10px rgba(0, 0, 0, 0.2), 0 0 10px 10px rgba(0, 0, 0, 0.19);
 	}

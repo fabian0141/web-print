@@ -1,0 +1,30 @@
+<html>
+<head>
+    <title>HFK Web Printer</title>
+    <link rel="stylesheet" href="static/stylesheet.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="static/fckprinters.png" type="image/x-icon">
+</head>
+
+<body id="jobsBackground">
+    <script src="static/jquery-3.6.0.js"></script>
+    <script src="//mozilla.github.io/pdf.js/build/pdf.js"></script>
+
+    <div id="jobsView">
+        <h1 id="title">Druck Aufträge</h1>
+
+        <table id="jobsTable">
+            <tr>
+                <th>Titel</th>
+                <th>Druckdatum</th>
+                <th>Druckstatus</th>
+                <th></th>
+            </tr>
+        </table>
+
+        <a href="../" id="furtherPrint"><button class="w3-button w3-brown w3-round">Weiter Drucken</button></a>
+    </div>
+
+</body>
+</html>

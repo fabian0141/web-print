@@ -5,8 +5,6 @@ document.getElementById('pageCount').textContent = 0;
 
 var pagesToPrint = new Array();
 var jobID = -1;
-var printInProgress = false, infoRequests = 0, infoPause = false;
-
 
 function pagesSelectionChanged() {
 	var pageSelection = document.getElementById("pages").value;
@@ -95,6 +93,8 @@ ctx = canvas.getContext('2d');
 
     // Wait for rendering to finish
     renderTask.promise.then(function() {
+		pdfImage = ctx.getImageData(0, 0, canvas.width, canvas.height);
+		makeAdjustedImage();
     	pageRendering = false;
     	if (pageNumPending !== null) {
         // New page rendering is pending
@@ -143,44 +143,6 @@ ctx = canvas.getContext('2d');
  	queueRenderPage(pagesToPrint[pageNum]);
  }
  document.getElementById('next').addEventListener('click', onNextPage);
-
-$("#printForm").on("submit", function (e) {
- 	e.preventDefault();    
- 	document.getElementById("printProgressView").style.display = "block";
-
- 	var formData = new FormData(this);
- 	var url = $(this).attr('action');
- 	var form = document.getElementById("printForm");
-
- 	$.ajax({
- 		url: url,
- 		type: 'POST',
- 		data: formData,
- 		success: function (data) {
- 			var splitData = data.split("\n");
- 			for (var i = 0; i < splitData.length; i++) {
-
- 				console.log(splitData[i]);
-
- 				if (splitData[i].startsWith("Print-Job:")) {
- 					jobID = parseInt(splitData[i].substr(11, splitData[i].length));
- 				}
- 			}
-
- 			document.getElementById("printState").textContent = splitData[0];
- 			printInProgress = true;
- 			infoRequests = 0;
- 			getPrintInfo();
-
- 			var credential = new PasswordCredential(form);
-			navigator.credentials.store(credential);
-
- 		},
- 		cache: false,
- 		contentType: false,
- 		processData: false
- 	});
- });
 
  var dropArea = document.getElementById('background');
 
@@ -258,83 +220,12 @@ $("#printForm").on("submit", function (e) {
  	}
  }
 
- function cancelPrintJob() {
-
- 	var formData = new FormData();
- 	formData.append('printers', document.getElementById("printers").value);
- 	formData.append('user', document.getElementById("user").value);
- 	formData.append('password', document.getElementById("password").value);
- 	formData.append('jobID', jobID);
-
- 	$.ajax({url: "/cancel-print", data: formData, processData: false, contentType: false, type: 'POST', success: function(data) {
- 		infoPause = true;
- 		document.getElementById("printState").textContent = data;
- 	}});
+ function showMoreOptions() {
+	 $('#moreOptions').hide();
+	 $('#additionalOptions').show();
  }
 
- function hidePrintProgressView() {
- 	document.getElementById("printProgressView").style.display = "none";
- 	printInProgress = false;
- }
-
- function getPrintInfo() {  
- 	setTimeout(function() {
-
- 		if (!infoPause) {
- 			var formData = new FormData();
- 			formData.append('printers', document.getElementById("printers").value);
- 			formData.append('user', document.getElementById("user").value);
- 			formData.append('password', document.getElementById("password").value);
- 			formData.append('jobID', jobID);
-
-
- 			$.ajax({url: "/info-print", data: formData, processData: false, contentType: false, type: 'POST', success: function(data) {
-
- 				var splitData = data.split("\n");
- 				for (var i = 0; i < splitData.length; i++) {
-
- 					console.log(splitData[i]);
-
- 					if (splitData[i].startsWith("job-state:")) {
- 						var state = parseInt(splitData[i].substr(11, splitData[i].length));
-
- 						switch (state) {
- 							case 3:
- 							document.getElementById("printState").textContent = "Der Druck ist in der Warteschlange";
- 							break;
- 							case 4:
- 							document.getElementById("printState").textContent = "Der Druck wurde angehalten";
- 							break;
- 							case 5:
- 							document.getElementById("printState").textContent = "Das Dokument wird gedruckt";
- 							break;
- 							case 6:
- 							document.getElementById("printState").textContent = "Der Druck wurde gestoppt";
- 							break;
- 							case 7:
- 							document.getElementById("printState").textContent = "Der Druck wurde von dir abgebrochen";
- 							break;
- 							case 8:
- 							document.getElementById("printState").textContent = "Der Druck wurde vom Drucker abgebrochen";
- 							break;
- 							case 9:
- 							document.getElementById("printState").textContent = "Das Dokument wurde gedruckt";
- 							printInProgress = false;
- 							break;
- 							default:
-		 					document.getElementById("printState").textContent = "Unbekannt";
-
- 						}
-
- 					}
- 				}
- 			}});
- 			if (printInProgress && infoRequests++ < 30) {
- 				getPrintInfo();            
- 			}
- 		} else {
- 			infoPause = false;
- 		}
-
- 	}, 1000)
- }
+ function showLessOptions() {
+	$('#moreOptions').show();
+	$('#additionalOptions').hide();
+}

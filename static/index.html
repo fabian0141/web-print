@@ -4,6 +4,7 @@
     <link rel="stylesheet" href="static/stylesheet.css">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="static/fckprinters.png" type="image/x-icon">
 </head>
 
 <body id="background">
@@ -13,7 +14,8 @@
     <form id="printForm" action="/print" enctype="multipart/form-data" method="post">
         <div>
             <div id="preview">
-                <h1 id="title">PDF Online Printer</h1>
+                <h1 id="title">PDF Online Printer <div id="infoview"> <img id="test" src="static/info_icon.svg" width="35px"/><br/>
+                    <span id="displayinfo">Die Vorschau ist nur als Hilfe gedacht! Nicht alle Optionen werden visualisiert.</span></div></h1>
 
                 <div id="pdfArea">
                  <label><canvas id="the-canvas"></canvas><br><br></label>
@@ -47,32 +49,57 @@
                     {{end}}
                 </select><br><br>
 
-                 <label for="pages">Seiten Nummern:</label><br>
-                 <input type="text" id="pages" name="page numbers" pattern="|([1-9][0-9]*(-[1-9][0-9]*){0,1}(,[1-9][0-9]*(-[1-9][0-9]*){0,1})*)"
-                 title="Wähle einzelne Seiten durch ',' separiert aus oder mehrere Seiten mit '-' durch z.B.'1-3,5,7-8' um Die Seiten 1 bis 3, 5 und 7 bis 8 zu drucken" placeholder="1-3,5,7-8" onchange="pagesSelectionChanged()"><br><br>
+                <label for="pages">Seiten Nummern:</label><br>
+                <input type="text" id="pages" name="page numbers" pattern="|([1-9][0-9]*(-[1-9][0-9]*){0,1}(,[1-9][0-9]*(-[1-9][0-9]*){0,1})*)"
+                title="Wähle einzelne Seiten durch ',' separiert aus oder mehrere Seiten mit '-' durch z.B.'1-3,5,7-8' um Die Seiten 1 bis 3, 5 und 7 bis 8 zu drucken" placeholder="1-3,5,7-8" onchange="pagesSelectionChanged()"><br><br>
 
-                 <label for="copies">Anzahl an Kopien:</label><br>
-                 <input type="number" id="copies" name="copy number" min="1" value="1"><br><br>
+                <label for="copies">Anzahl an Kopien:</label><br>
+                <input type="number" id="copies" name="copy number" min="1" value="1"><br><br>
 
 
-                 <label>Farbwahl:</label><br>
-                 <input type="radio" id="blackwhite" value="monochrome" name="color" checked><label for="blackwhite" id="blackwhitelabel"> Schwarz/Weiß</label><br>
-                 <input type="radio" id="colored" value="color"  name="color"><label for="colored" id="coloredlabel"> Farblich</label><br><br>
+                <label>Farbwahl:</label><br>
+                <input type="radio" id="blackwhite" value="monochrome" name="color" checked><label for="blackwhite" id="blackwhitelabel" onclick="setBW(true)"> Schwarz/Weiß</label><br>
+                <input type="radio" id="colored" value="color"  name="color"><label for="colored" id="coloredlabel" onclick="setBW(false)"> Farblich</label><br><br>
 
-                 <label>Seiten Art:</label><br>
-                 <input type="radio" id="onesided" value="one-sided" name="sides" checked><label for="onesided"> Einseitig</label><br>
-                 <input type="radio" id="twosided" value="two-sided-long-edge" name="sides"><label for="twosided" id="twosidedlabel"> Doppelseitig</label><br><br>
+                <label>Seiten Art:</label><br>
+                <input type="radio" id="onesided" value="one-sided" name="sides" checked><label for="onesided"> Einseitig</label><br>
+                <input type="radio" id="twosided" value="two-sided-long-edge" name="sides"><label for="twosided" id="twosidedlabel"> Doppelseitig (über lange Seite)</label><br>
+                <input type="radio" id="twosidedshort" value="two-sided-short-edge" name="sides"><label for="twosidedshort" id="twosidedshortlabel"> Doppelseitig (über kurze Seite)</label><br><br>
 
-                 <label>Auflösung:</label><br>
-                 <input type="radio" id="high-res" value="5" name="res"><label for="high-res"> Hohe Auflösung</label><br>
-                 <input type="radio" id="mid-res" value="4" name="res" checked><label for="mid-res"> Normale Auflösung</label><br>
-                 <input type="radio" id="low-res" value="3" name="res"><label for="low-res"> Niedrige Auflösung</label><br><br>
+                <label for="portrait">Orientierung:</label><br>
+                <input type="radio" id="portrait" value="3" name="orientation" checked><label for="portrait"> Vertikal</label><br>
+                <input type="radio" id="landscape" value="4" name="orientation"><label for="landscape"> Horizontal</label><br>
+                <input type="radio" id="revportrait" value="6" name="orientation"><label for="revportrait"> Umgekehrt Vertikal</label><br>
+                <input type="radio" id="revlandscape" value="5" name="orientation"><label for="revlandscape"> Umgekehrt Horizontal</label><br><br>
 
-                 <label for="portrait">Orientierung:</label><br>
-                 <input type="radio" id="portrait" value="3" name="orientation" checked><label for="portrait"> Vertikal</label><br>
-                 <input type="radio" id="landscape" value="4" name="orientation"><label for="landscape"> Horizontal</label><br><br>
 
-                 <input class="w3-button w3-brown w3-round" type="submit" value="Drucken">
+                <button id="moreOptions" type="button" onclick="showMoreOptions()">Mehr Optionen</button>
+
+                <div id="additionalOptions">
+                    <label>Auflösung:</label><br>
+                    <input type="radio" id="high-res" value="5" name="res"><label for="high-res"> Hohe Auflösung</label><br>
+                    <input type="radio" id="mid-res" value="4" name="res" checked><label for="mid-res"> Normale Auflösung</label><br>
+                    <input type="radio" id="low-res" value="3" name="res"><label for="low-res"> Niedrige Auflösung</label><br><br>
+
+                    <label>Seiten pro Blatt:</label><br>
+                    <select id="pagespersheet" name="pages per sheet" onchange="setTiles()">
+                        <option selected>1</option>
+                        <option>2</option>
+                        <option>4</option>
+                        <option>6</option>
+                        <option>9</option>
+                        <option>16</option>
+                    </select><br><br>
+
+                    <label>Skalieren:</label><br>
+                    <input type="radio" id="no-scale" value="none" name="scale" checked><label for="no-scale"> Nicht Skalieren</label><br>
+                    <input type="radio" id="fit-scale" value="fit" name="scale"><label for="fit-scale"> Druckbarer Bereich</label><br>
+                    <input type="radio" id="fill-scale" value="fill" name="scale"><label for="fill-scale"> Komplette Seite</label><br><br>
+
+                    <button id="lessOptions" type="button" onclick="showLessOptions()">Weniger Optionen</button>
+                </div>
+                <br/>
+                <input class="w3-button w3-brown w3-round" type="submit" value="Drucken">
             </div>
         </div>
     </form>
@@ -86,18 +113,9 @@
     </div>
 </div>
 
-<div id="printProgressView">
-    <div id="progressViewPanel">
-        <h3><b>Drucker Fortschritt</b></h3>
-        <div style="height: 125px">
-            <h5 style="float: left;">Druckstatus:&nbsp;&nbsp;<span id="printState">Druck wird vorbereitet</span></h5><br><br><br>                    
-        </div>
-        <button style="float: left;" class="w3-button w3-brown w3-round" onclick="cancelPrintJob()">Druckauftrag abbrechen</button>
-        <button style="float: right;" class="w3-button w3-brown w3-round" onclick="hidePrintProgressView()">Schliessen</button>
-    </div>
-</div>
-
 </body>
 </html>
 
 <script src="static/controller.js"></script>
+<script src="static/documentView.js"></script>
+
