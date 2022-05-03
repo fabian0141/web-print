@@ -144,22 +144,6 @@ void printDocument(cups_dest_t *dest, char** options)
 	ippDelete(response);
 }
 
-void infoPrint(cups_dest_t *dest, int length, char* jobs, char* printer)
-{
-	int jobID = 0;
-
-	for (int i = 0; jobs[i] != '\0'; i++)
-	{
-		if (jobs[i] == ',') {
-			requestJobInfo(dest, jobID, printer);
-			jobID = 0;
-		} else {
-			jobID = jobID * 10 + (jobs[i] - '0');
-		}
-	}
-	requestJobInfo(dest, jobID, printer);
-}
-
 void requestJobInfo(cups_dest_t *dest, int jobID, char* printer) {
 	http_t *http;
 	ipp_t *request, *response;
@@ -207,6 +191,22 @@ void requestJobInfo(cups_dest_t *dest, int jobID, char* printer) {
 	}
 
 	ippDelete(response);
+}
+
+void infoPrint(cups_dest_t *dest, int length, char* jobs, char* printer)
+{
+	int jobID = 0;
+
+	for (int i = 0; jobs[i] != '\0'; i++)
+	{
+		if (jobs[i] == ',') {
+			requestJobInfo(dest, jobID, printer);
+			jobID = 0;
+		} else {
+			jobID = jobID * 10 + (jobs[i] - '0');
+		}
+	}
+	requestJobInfo(dest, jobID, printer);
 }
 
 void cancelPrint(cups_dest_t *dest, char* user, int jobID)
@@ -310,7 +310,7 @@ int main(int argc, char **argv)
 			cupsEnumDests(CUPS_DEST_FLAGS_NONE, 1000, NULL, 0, 0, (cups_dest_cb_t)getPrinterDest, &dests);
 			cups_dest_t* printerDest = cupsGetDest(argv[2], NULL, dests.numDests, dests.dests);
 
-			char* options[9] = {argv[4], argv[5], argv[7], argv[8], argv[9], argv[10], argv[11], argv[12], argv[13], argv[14]};
+			char* options[10] = {argv[4], argv[5], argv[7], argv[8], argv[9], argv[10], argv[11], argv[12], argv[13], argv[14]};
 			printDocument(printerDest, options);
 
 		} else if (strcmp(argv[1], "-info") == 0) { //get print job info with args length, ['printer name', ['job id']]
