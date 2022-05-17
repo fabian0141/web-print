@@ -1,4 +1,4 @@
-
+//window.performance.memory
 var isBW = true;
 var isVertical = false;
 var resolution ;
@@ -12,6 +12,7 @@ var oldOrientation = false;
 var bufferedImages;
 var curSide = 0;
 var maxSides = 0;
+var maxPages = 0;
 
 function setBW(bw) {
 	isBW = bw;
@@ -20,6 +21,10 @@ function setBW(bw) {
 
 function setTiles() {
     pagesPerSide = parseInt($('#pagespersheet').val());
+
+    maxSides = Math.ceil(maxPages / pagesPerSide);
+    document.getElementById('pageCount').textContent = maxSides;
+    document.getElementById('pageNum').textContent = curSide + 1;
     makeAdjustedImage();
 }
 

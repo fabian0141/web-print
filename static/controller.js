@@ -46,8 +46,10 @@ $('#inputFile').change( function(event) {
      	pdfDoc = pdfDoc_;
 		bufferedImages = new Array(pdfDoc.numPages);
 
-		maxSides = pdfDoc.numPages;
-     	document.getElementById('pageCount').textContent = pdfDoc.numPages;
+		document.getElementById('pageCount').textContent = pdfDoc.numPages;
+		document.getElementById('pageNum').textContent = 1;
+		curSide = 0;
+		maxPages = pdfDoc.numPages;
 
      	pagesToPrint = new Array();
      	for (var i = 0; i < pdfDoc.numPages; i++) {
@@ -204,6 +206,9 @@ function dropDocument(e) {
 				bufferedImages = new Array(pdfDoc.numPages);
 
  				document.getElementById('pageCount').textContent = pdfDoc.numPages;
+			 	document.getElementById('pageNum').textContent = 1;
+				curSide = 0;
+				maxPages = pdfDoc.numPages;
 
  				pagesToPrint = new Array();
  				for (var i = 0; i < pdfDoc.numPages; i++) {
@@ -232,11 +237,13 @@ function dropDocument(e) {
 
 function nextSide() {
 	curSide = mod(++curSide, maxSides);
+	makeAdjustedImage();
 }
 document.getElementById('next').addEventListener('click', nextSide);
 
 function prevSide() {
 	curSide = mod (--curSide, maxSides);
+	makeAdjustedImage();
 }
 document.getElementById('prev').addEventListener('click', prevSide);
 
