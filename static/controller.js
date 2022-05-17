@@ -88,28 +88,23 @@ async function renderPage(num) {
  	pageRendering = true;
 
 	var page = await pdfDoc.getPage(num+1)
-  		var viewport = page.getViewport({scale: scale});
-  		canvas.height = viewport.height;
-  		canvas.width = viewport.width;
+	var viewport = page.getViewport({scale: scale});
+	canvas.height = viewport.height;
+	canvas.width = viewport.width;
 
-		  var renderContext = {
-			canvasContext: ctx,
-			viewport: viewport
-		};
+		var renderContext = {
+		canvasContext: ctx,
+		viewport: viewport
+	};
 
-		await page.render(renderContext).promise;
+	await page.render(renderContext).promise;
+	bufferedImages[num] = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-			console.log(bufferedImages);
-
-			bufferedImages[num] = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-			console.log(bufferedImages);
-
-			pageRendering = false;
-			if (pageNumPending !== null) {
-				renderPage(pageNumPending);
-				pageNumPending = null;
-			}
+	pageRendering = false;
+	if (pageNumPending !== null) {
+		renderPage(pageNumPending);
+		pageNumPending = null;
+	}
 	//document.getElementById('pageNum').textContent = num;
 }
 
@@ -174,12 +169,12 @@ var dropArea = document.getElementById('background');
  	document.getElementById("dragNdropFile").style.display = "flex";
  }
 
- function defaultDragOver(e) {
+function defaultDragOver(e) {
  	e.preventDefault()
  	e.stopPropagation()
  }
 
- function hideDragNDrop(e) {
+function hideDragNDrop(e) {
  	e.preventDefault()
  	e.stopPropagation()
  	counter--;
@@ -187,8 +182,8 @@ var dropArea = document.getElementById('background');
  		document.getElementById("dragNdropFile").style.display = "none";
  	}
  }
-//1685x1192
- function dropDocument(e) {
+
+function dropDocument(e) {
  	e.preventDefault()
  	e.stopPropagation()
  	counter = 0;

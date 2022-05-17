@@ -4,10 +4,11 @@ var isVertical = false;
 var resolution ;
 var addBorder = false;
 var fitA3 = false;
-var pagesPerSide = 2;
+var pagesPerSide = 1;
 var pdfImage;
 var isVertical = true;
 var oldIsVertical = true;
+var oldOrientation = false;
 var bufferedImages;
 var curSide = 0;
 var maxSides = 0;
@@ -25,9 +26,6 @@ function setTiles() {
 function resize(factor, imgData) {
     var newWidth = Math.floor(imgData.width / factor);
     var newHeight = Math.floor(imgData.height / factor);
-
-    console.log(imgData.width + " " + newWidth);
-    console.log(imgData.height + " " + newHeight);
 
     var tilesImage = new ImageData(newWidth, newHeight);
     for (x = 0; x < newWidth; x++) {
@@ -110,14 +108,15 @@ async function combinePages(widthTiles, heightTiles, resizeFactor, changeOrienta
     var imgData;
     if (changeOrientation) {
         isVertical = !isVertical;
+        console.log("change orientation");
         imgData = new ImageData(bufferedImages[pageIdx].height, bufferedImages[pageIdx].width);
     } else {
         imgData = new ImageData(bufferedImages[pageIdx].width, bufferedImages[pageIdx].height);
     }
+    oldOrientation = changeOrientation;
 
-
-    for (i = 0; i < widthTiles; i++) {
-        for (j = 0; j < heightTiles; j++) {
+    for (i = 0; i < heightTiles; i++) {
+        for (j = 0; j < widthTiles; j++) {
             if (bufferedImages[pageIdx] == null) {
                 await renderPage(pageIdx);
             }
@@ -128,7 +127,6 @@ async function combinePages(widthTiles, heightTiles, resizeFactor, changeOrienta
                     bufferedImages[pageIdx].width,
                     bufferedImages[pageIdx].height)
             } else {
-                console.log(bufferedImages[pageIdx]);
                 tilesImage = resize(resizeFactor, bufferedImages[pageIdx])
             }
             
@@ -137,20 +135,19 @@ async function combinePages(widthTiles, heightTiles, resizeFactor, changeOrienta
                     var pos = x + j * tilesImage.width * 4 + (y + i * tilesImage.height) * imgData.width * 4;
                     var oldPos = x + y * tilesImage.width * 4;
 
-                    imgData.data[pos] = tilesImage.data[oldPos]
-                    imgData.data[pos + 1] = tilesImage.data[oldPos + 1]
-                    imgData.data[pos + 2] = tilesImage.data[oldPos + 2]
-                    imgData.data[pos + 3] = tilesImage.data[oldPos + 3]
+                    imgData.data[pos] = tilesImage.data[oldPos];
+                    imgData.data[pos + 1] = tilesImage.data[oldPos + 1];
+                    imgData.data[pos + 2] = tilesImage.data[oldPos + 2];
+                    imgData.data[pos + 3] = tilesImage.data[oldPos + 3];
                 }
             }
-
             pageIdx++;
         }
     }
     return imgData;
 }
 
-async function makeAdjustedImage() {   
+async function makeAdjustedImage() {
     pageIdx = curSide * pagesPerSide;
 
     if (bufferedImages[pageIdx] == null) {
@@ -195,14 +192,16 @@ async function makeAdjustedImage() {
         }
     }
 
-    if (isVertical != oldIsVertical) {
-        oldIsVertical = isVertical;
-        console.log(isVertical + " " + canvas.width + " " + canvas.height);
-        if ((isVertical && canvas.width > canvas.height) || (!isVertical && canvas.width < canvas.height)) {
-            var tmp = canvas.width;
-            canvas.width = canvas.height;
-            canvas.height = tmp;
-        }
+    console.log(isVertical + " " + oldIsVertical + " " + canvas.width + " " + canvas.height);
+
+    if (isVertical && canvas.width > canvas.height) {
+        var tmp = canvas.width;
+        canvas.width = canvas.height;
+        canvas.height = tmp;
+    } else if (!isVertical && canvas.width < canvas.height) {
+        var tmp = canvas.width;
+        canvas.width = canvas.height;
+        canvas.height = tmp;
     }
     ctx.putImageData(imgData, 0, 0);
 }
