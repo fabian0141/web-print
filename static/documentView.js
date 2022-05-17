@@ -4,7 +4,7 @@ var isVertical = false;
 var resolution ;
 var addBorder = false;
 var fitA3 = false;
-var pagesPerSide = 1;
+var pagesPerSide = 2;
 var pdfImage;
 var isVertical = true;
 var oldIsVertical = true;
@@ -18,7 +18,7 @@ function setBW(bw) {
 }
 
 function setTiles() {
-    pagesPerSide = $('#pagespersheet').val();
+    pagesPerSide = parseInt($('#pagespersheet').val());
     makeAdjustedImage();
 }
 
@@ -105,11 +105,20 @@ function addTiledImage(tilesImage, oldData, widthTiles, heightTiles) {
     return imgData;
 }
 
-function combinePages(widthTiles, heightTiles, resizeFactor) {
+async function combinePages(widthTiles, heightTiles, resizeFactor, changeOrientation) {
     pageIdx = curSide * pagesPerSide;
+    var imgData;
+    if (changeOrientation) {
+        isVertical = !isVertical;
+        imgData = new ImageData(bufferedImages[pageIdx].height, bufferedImages[pageIdx].width);
+    } else {
+        imgData = new ImageData(bufferedImages[pageIdx].width, bufferedImages[pageIdx].height);
+    }
+
+
     for (i = 0; i < widthTiles; i++) {
         for (j = 0; j < heightTiles; j++) {
-            if (bufferedImages[pageIdx] === null) {
+            if (bufferedImages[pageIdx] == null) {
                 await renderPage(pageIdx);
             }
             var tilesImage;
@@ -119,12 +128,13 @@ function combinePages(widthTiles, heightTiles, resizeFactor) {
                     bufferedImages[pageIdx].width,
                     bufferedImages[pageIdx].height)
             } else {
+                console.log(bufferedImages[pageIdx]);
                 tilesImage = resize(resizeFactor, bufferedImages[pageIdx])
             }
             
             for (x = 0; x < tilesImage.width * 4; x += 4) {
                 for (y = 0; y < tilesImage.height; y++) {
-                    var pos = x + i * tilesImage.width * 4 + (y + j * tilesImage.height) * imgData.width * 4;
+                    var pos = x + j * tilesImage.width * 4 + (y + i * tilesImage.height) * imgData.width * 4;
                     var oldPos = x + y * tilesImage.width * 4;
 
                     imgData.data[pos] = tilesImage.data[oldPos]
@@ -137,15 +147,42 @@ function combinePages(widthTiles, heightTiles, resizeFactor) {
             pageIdx++;
         }
     }
+    return imgData;
 }
 
-function makeAdjustedImage() {   
-    isVertical = pdfImage.height > pdfImage.width;
+async function makeAdjustedImage() {   
+    pageIdx = curSide * pagesPerSide;
+
+    if (bufferedImages[pageIdx] == null) {
+        await renderPage(pageIdx);
+    }
+
+    isVertical = bufferedImages[pageIdx].height > bufferedImages[pageIdx].width;
 
     var imgData = new ImageData(
-        new Uint8ClampedArray(pdfImage.data),
-        pdfImage.width,
-        pdfImage.height)
+        new Uint8ClampedArray(bufferedImages[pageIdx].data),
+        bufferedImages[pageIdx].width,
+        bufferedImages[pageIdx].height);
+
+    if (pagesPerSide != 1) {
+        switch (pagesPerSide) {
+            case 2:
+                imgData = await combinePages(2,1, 1.42, true);
+                break;
+            case 4:
+                imgData = await combinePages(2,2, 2, false);
+                break;
+            case 6:
+                imgData = await combinePages(3,2, 2.83, true);
+                break;
+            case 9:
+                imgData = await combinePages(3,3, 3, false);
+                break;
+            case 16:
+                imgData = await combinePages(4,4, 4, false);
+                break;
+        }
+    }
 
     if (isBW) {
         for (i = 0; i < imgData.data.length; i += 4) {
@@ -158,32 +195,6 @@ function makeAdjustedImage() {
         }
     }
 
-    if (pagesPerSide != 1) {
-        switch (pagesPerSide) {
-            case "2":
-                //tilesImage = resize(1.42, imgData)
-                //imgData = addTiledImage(tilesImage, imgData, 2, 1);
-                imgData = combinePages(2,1);
-                break;
-            case "4":
-                tilesImage = resize(2, imgData)
-                imgData = addTiledImage(tilesImage, imgData, 2, 2);
-                break;
-            case "6":
-                tilesImage = resize(2.83, imgData)
-                imgData = addTiledImage(tilesImage, imgData, 3, 2);
-                break;
-            case "9":
-                tilesImage = resize(3, imgData)
-                imgData = addTiledImage(tilesImage, imgData, 3, 3);
-                break;
-            case "16":
-                tilesImage = resize(4, imgData)
-                imgData = addTiledImage(tilesImage, imgData, 4, 4);
-                console.log("wurks");
-                break;
-        }
-    }
     if (isVertical != oldIsVertical) {
         oldIsVertical = isVertical;
         console.log(isVertical + " " + canvas.width + " " + canvas.height);

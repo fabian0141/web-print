@@ -28,7 +28,7 @@ function pagesSelectionChanged() {
 	console.log(pagesToPrint[0] + " " + pagesToPrint.length);
 
 	pageNum = 0;
-	renderPage(pagesToPrint[pageNum]);
+	//renderPage(pagesToPrint[pageNum]);
 }
 
 $("#printForm").on("submit", function (e) {
@@ -39,13 +39,13 @@ $("#printForm").on("submit", function (e) {
 $('#inputFile').change( function(event) {
 
 	var url = URL.createObjectURL(event.target.files[0]);
-
     /**
      * Asynchronously downloads PDF.
      */
     pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
      	pdfDoc = pdfDoc_;
 		bufferedImages = new Array(pdfDoc.numPages);
+
 		maxSides = pdfDoc.numPages;
      	document.getElementById('pageCount').textContent = pdfDoc.numPages;
 
@@ -57,7 +57,7 @@ $('#inputFile').change( function(event) {
         // Initial/first page rendering
         document.getElementById("pages").value = "";
         pageNum = 0;
-        renderPage(pagesToPrint[pageNum]);
+		makeAdjustedImage();
     });
  });
 
@@ -78,37 +78,38 @@ scale = 2,
 canvas = document.getElementById('the-canvas'),
 ctx = canvas.getContext('2d');
 
+
 /**
  * Get page info from document, resize canvas accordingly, and render page.
  * @param num Page number.
  */
- function renderPage(num) {
+async function renderPage(num) {
+	console.log("Render Page: " + num);
  	pageRendering = true;
 
-	pdfDoc.getPage(num).then(function(page) {
+	var page = await pdfDoc.getPage(num+1)
   		var viewport = page.getViewport({scale: scale});
   		canvas.height = viewport.height;
   		canvas.width = viewport.width;
 
-		var renderContext = {
+		  var renderContext = {
 			canvasContext: ctx,
 			viewport: viewport
 		};
-		var renderTask = page.render(renderContext);
 
-		// Wait for rendering to finish
-		renderTask.promise.then(function() {
+		await page.render(renderContext).promise;
+
+			console.log(bufferedImages);
+
 			bufferedImages[num] = ctx.getImageData(0, 0, canvas.width, canvas.height);
-			makeAdjustedImage();
+
+			console.log(bufferedImages);
+
 			pageRendering = false;
 			if (pageNumPending !== null) {
-			// New page rendering is pending
 				renderPage(pageNumPending);
 				pageNumPending = null;
 			}
-		});
-	});
-
 	//document.getElementById('pageNum').textContent = num;
 }
 
@@ -116,37 +117,37 @@ ctx = canvas.getContext('2d');
  * If another page rendering in progress, waits until the rendering is
  * finised. Otherwise, executes rendering immediately.
  */
- function queueRenderPage(num) {
+function queueRenderPage(num) {
  	if (pageRendering) {
  		pageNumPending = num;
  	} else {
  		renderPage(num);
  	}
- }
+}
 
 /**
  * Displays previous page.
  */
- function onPrevPage() {
+function onPrevPage() {
  	if (pageNum <= 0) {
  		return;
  	}
  	pageNum--;
  	queueRenderPage(pagesToPrint[pageNum]);
- }
+}
 
 /**
  * Displays next page.
  */
- function onNextPage() {
+function onNextPage() {
  	if (pageNum >= pagesToPrint.length - 1) {
  		return;
  	}
  	pageNum++;
  	queueRenderPage(pagesToPrint[pageNum]);
- }
+}
 
- var dropArea = document.getElementById('background');
+var dropArea = document.getElementById('background');
 
  ;['dragenter'].forEach(eventName => {
  	dropArea.addEventListener(eventName, showDragNDrop, false)
@@ -186,7 +187,7 @@ ctx = canvas.getContext('2d');
  		document.getElementById("dragNdropFile").style.display = "none";
  	}
  }
-
+//1685x1192
  function dropDocument(e) {
  	e.preventDefault()
  	e.stopPropagation()
@@ -205,6 +206,8 @@ ctx = canvas.getContext('2d');
 
  			pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
  				pdfDoc = pdfDoc_;
+				bufferedImages = new Array(pdfDoc.numPages);
+
  				document.getElementById('pageCount').textContent = pdfDoc.numPages;
 
  				pagesToPrint = new Array();
@@ -214,7 +217,7 @@ ctx = canvas.getContext('2d');
 
  				document.getElementById("pages").value = "";
  				pageNum = 0;
- 				renderPage(pagesToPrint[pageNum]);
+ 				makeAdjustedImage();
  			});
 
  			break;
