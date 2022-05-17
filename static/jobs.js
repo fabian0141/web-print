@@ -1,6 +1,8 @@
 var jobRows = new Map();
 
 getAllJobs();
+console.log("Cookies: " + document.cookie);
+
 
 function getAllJobs() {
     var formData = new FormData();
@@ -11,22 +13,22 @@ function getAllJobs() {
             if (splitData[i].startsWith("job-state:")) {
 
                 var jobState = splitData[i].split(" ");
-                var job = jobState[1];
-                var state = jobState[2];
-                var date = jobState[3];
-                var printer = jobState[4];
+                var job = parseInt(jobState[1]);
+                var state = parseInt(jobState[2]);
+                var date = jobState[3] + " " + jobState[4];
+                var printer = jobState[5];
 
-                var nameStart = splitData[i].indexOf("-");
+                var nameStart = splitData[i].indexOf("+");
                 var name = splitData[i].substring(nameStart+1);
 
-                var row = $('#jobsTable').insertRow(-1);
+                var row = document.getElementById("jobsTable").insertRow(-1);
                 var cell = row.insertCell(0);
                 cell.innerHTML = name;
                 cell = row.insertCell(1);
                 cell.innerHTML = date;
-                cell = row.insertCell(3);
-                cell.innerHTML = '<button class="w3-button w3-brown w3-round" onclick="cancelPrintJob(' + job + ', ' + printer + ')">Abbrechen</button>';
                 cell = row.insertCell(2);
+                var cell3 = row.insertCell(3);
+                cell3.innerHTML = '<button class="w3-button w3-brown w3-round" onclick="cancelPrintJob(' + job + ', "' + printer + '")">Abbrechen</button>';
 
                 switch (state) {
                     case 3:
@@ -55,7 +57,7 @@ function getAllJobs() {
                         console.log(state);
                 }
                 if (state == 3 || state == 5) {
-                    jobRow.set(job, {idx: row.rowIndex, printerName: printer});
+                    jobRows.set(job, {idx: row.rowIndex, printerName: printer});
                 }
             } else {
                 console.log(splitData[i]);
@@ -74,22 +76,23 @@ function jsonJobsRequest() {
         printer = values.printerName;
 
         if (printerJobs.has(printer)) {
-            printerJobs[printer].jobs.push(job);
+            printerJobs.get(printer).jobs.push(job);
 
         } else {
             var printerObj = new Object();
             printerObj.printer = printer;
             printerObj.jobs = [job];
-            printerJobs[printer] = printerObj;
+            printerJobs.set(printer, printerObj);
         }
     });
-    return JSON.parse(JSON.stringify(Array.from(printerJobs.values())))
+
+    return JSON.stringify(Array.from(printerJobs.values()));
 }
 
 function getPrintInfo() { 
     setTimeout(function() {
         var formData = new FormData();
-        formData.append('printers', jsonJobsRequest);
+        formData.append('printers', jsonJobsRequest());
 
         $.ajax({url: "/info-prints", data: formData, processData: false, contentType: false, type: 'POST', success: function(data) {
             var splitData = data.split("\n");
@@ -107,28 +110,29 @@ function getPrintInfo() {
 
                     switch (state) {
                         case 3:
-                            $('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck ist in der Warteschlange";
+                            document.getElementById('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck ist in der Warteschlange";
                             break;
                         case 4:
-                            $('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde angehalten";
+                            document.getElementById('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde angehalten";
                             break;
                         case 5:
-                            $('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Das Dokument wird gedruckt";
+                            document.getElementById('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Das Dokument wird gedruckt";
                             break;
                         case 6:
-                            $('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde gestoppt";
+                            document.getElementById('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde gestoppt";
                             break;
                         case 7:
-                            $('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde von dir abgebrochen";
+                            document.getElementById('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde von dir abgebrochen";
                             break;
                         case 8:
-                            $('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde vom Drucker abgebrochen";
+                            document.getElementById('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde vom Drucker abgebrochen";
                             break;
                         case 9:
-                            $('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Das Dokument wurde gedruckt";
+                            document.getElementById('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Das Dokument wurde gedruckt";
                             break;
                         default:
-                            $('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Unbekannt";
+                            document.getElementById('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Unbekannt";
+                            console.log(state);
                     }
                 } else {
                     console.log(splitData[i]);
@@ -136,6 +140,7 @@ function getPrintInfo() {
             }
 
             if (jobRows.length != 0) {
+                console.log(jobRows.length)
                 getPrintInfo();
             }
         }});

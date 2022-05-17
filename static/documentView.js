@@ -8,7 +8,9 @@ var pagesPerSide = 1;
 var pdfImage;
 var isVertical = true;
 var oldIsVertical = true;
-
+var bufferedImages;
+var curSide = 0;
+var maxSides = 0;
 
 function setBW(bw) {
 	isBW = bw;
@@ -103,6 +105,40 @@ function addTiledImage(tilesImage, oldData, widthTiles, heightTiles) {
     return imgData;
 }
 
+function combinePages(widthTiles, heightTiles, resizeFactor) {
+    pageIdx = curSide * pagesPerSide;
+    for (i = 0; i < widthTiles; i++) {
+        for (j = 0; j < heightTiles; j++) {
+            if (bufferedImages[pageIdx] === null) {
+                await renderPage(pageIdx);
+            }
+            var tilesImage;
+            if (resizeFactor == 1) {
+                var tilesImage = new ImageData(
+                    new Uint8ClampedArray(bufferedImages[pageIdx].data),
+                    bufferedImages[pageIdx].width,
+                    bufferedImages[pageIdx].height)
+            } else {
+                tilesImage = resize(resizeFactor, bufferedImages[pageIdx])
+            }
+            
+            for (x = 0; x < tilesImage.width * 4; x += 4) {
+                for (y = 0; y < tilesImage.height; y++) {
+                    var pos = x + i * tilesImage.width * 4 + (y + j * tilesImage.height) * imgData.width * 4;
+                    var oldPos = x + y * tilesImage.width * 4;
+
+                    imgData.data[pos] = tilesImage.data[oldPos]
+                    imgData.data[pos + 1] = tilesImage.data[oldPos + 1]
+                    imgData.data[pos + 2] = tilesImage.data[oldPos + 2]
+                    imgData.data[pos + 3] = tilesImage.data[oldPos + 3]
+                }
+            }
+
+            pageIdx++;
+        }
+    }
+}
+
 function makeAdjustedImage() {   
     isVertical = pdfImage.height > pdfImage.width;
 
@@ -122,11 +158,12 @@ function makeAdjustedImage() {
         }
     }
 
-    /*if (pagesPerSide != 1) { //too much work too lazy rn
+    if (pagesPerSide != 1) {
         switch (pagesPerSide) {
             case "2":
-                tilesImage = resize(1.42, imgData)
-                imgData = addTiledImage(tilesImage, imgData, 2, 1);
+                //tilesImage = resize(1.42, imgData)
+                //imgData = addTiledImage(tilesImage, imgData, 2, 1);
+                imgData = combinePages(2,1);
                 break;
             case "4":
                 tilesImage = resize(2, imgData)
@@ -155,7 +192,7 @@ function makeAdjustedImage() {
             canvas.width = canvas.height;
             canvas.height = tmp;
         }
-    }*/
+    }
     ctx.putImageData(imgData, 0, 0);
 }
 

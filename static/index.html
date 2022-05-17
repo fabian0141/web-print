@@ -14,7 +14,7 @@
     <form id="printForm" action="/print" enctype="multipart/form-data" method="post">
         <div>
             <div id="preview">
-                <h1 id="title">PDF Online Printer <div id="infoview"> <img id="test" src="static/info_icon.svg" width="35px"/><br/>
+                <h1 id="title">PDF Online Printer <div id="infoview"> <img src="static/info_icon.svg" width="35px"/><br/>
                     <span id="displayinfo">Die Vorschau ist nur als Hilfe gedacht! Nicht alle Optionen werden visualisiert.</span></div></h1>
 
                 <div id="pdfArea">
@@ -92,7 +92,8 @@
                     </select><br><br>
 
                     <label>Skalieren:</label><br>
-                    <input type="radio" id="no-scale" value="none" name="scale" checked><label for="no-scale"> Nicht Skalieren</label><br>
+                    <input type="radio" id="no-scale" value="none" name="scale"><label for="no-scale"> Nicht Skalieren</label><br>
+                    <input type="radio" id="auto-scale" value="auto-fit" name="scale" checked><label for="auto-scale"> Auto Skalieren</label><br>
                     <input type="radio" id="fit-scale" value="fit" name="scale"><label for="fit-scale"> Druckbarer Bereich</label><br>
                     <input type="radio" id="fill-scale" value="fill" name="scale"><label for="fill-scale"> Komplette Seite</label><br><br>
 
@@ -103,6 +104,14 @@
             </div>
         </div>
     </form>
+
+<div id="fullgraybackground">
+    <div id="loader">
+        <img id="test" src="static/loading.gif" width="80px"/>
+        <span>Auftrag wird an den Drucker gesendet.</span>
+    </div>
+</div>
+
 
  <div id="dragNdropFile">
     <div>

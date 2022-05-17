@@ -147,7 +147,7 @@ func showJobsPage(w http.ResponseWriter, r *http.Request) {
 
 //Get document and save locally then execute printcli with all print settings
 func print(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Printing Document...")
+	fmt.Printf("Printing Document...\n")
 	var buf bytes.Buffer
 	file, header, err := r.FormFile("filename")
 	if checkError(err) {
@@ -156,7 +156,6 @@ func print(w http.ResponseWriter, r *http.Request) {
 
 	defer file.Close()
 	name := header.Filename
-	fmt.Fprintf(w, "Der Druck wird vorbereitet\n")
 
 	io.Copy(&buf, file)
 	contents := buf.String()
@@ -205,25 +204,28 @@ func print(w http.ResponseWriter, r *http.Request) {
 	if checkError(err) {
 		return
 	}
-	fmt.Fprint(w, string(info))
 	fmt.Print(string(info))
 
 	err = os.Remove(name)
 	checkError(err)
 
-	sessionToken := uuid.NewString()
 	infos := strings.Split(string(info), "\n")
 	var jobID = -1
 	for i := 0; i < len(infos); i++ {
 		if strings.HasPrefix(infos[i], "Print-Job: ") {
-			jobID, _ = strconv.Atoi(infos[i])
+			jobID, err = strconv.Atoi(infos[i][11:])
+			fmt.Printf("%s %d\n", infos[i], jobID)
+			fmt.Println(err)
 		}
 	}
 	if jobID == -1 {
 		return
 	}
+	log.Println("Get Session")
+
 	cookie, err := r.Cookie("session_token")
-	if err != nil {
+	if err == nil {
+		fmt.Println(err, cookie)
 		session, e := getSession(cookie.Value)
 		if e != -1 {
 			if printer, ok := session.PrintJobs[r.FormValue("printers")]; ok {
@@ -233,13 +235,16 @@ func print(w http.ResponseWriter, r *http.Request) {
 				session.PrintJobs[r.FormValue("printers")] = append(session.PrintJobs[r.FormValue("printers")], jobID)
 
 			}
-			session.PrintJobs[r.FormValue("printers")] = append(session.PrintJobs[r.FormValue("printers")], jobID)
-			http.Redirect(w, r, "../jobs", http.StatusSeeOther)
+			http.Redirect(w, r, "/jobs", http.StatusSeeOther)
 			return
 		}
 	}
+
+	sessionToken := uuid.NewString()
 	printJobs := make(map[string][]int, 1)
 	printJobs[r.FormValue("printers")] = append(printJobs[r.FormValue("printers")], jobID)
+	fmt.Println(printJobs)
+	fmt.Println(jobID)
 	expiresAt := time.Now().Add(24 * time.Hour)
 	addSession(Session{sessionToken, r.FormValue("username"), r.FormValue("password"), printJobs, expiresAt})
 
@@ -249,19 +254,22 @@ func print(w http.ResponseWriter, r *http.Request) {
 		Expires: expiresAt,
 	})
 
-	http.Redirect(w, r, "../jobs", http.StatusSeeOther)
+	http.Redirect(w, r, "/jobs", http.StatusSeeOther)
 }
 
 func infoPrints(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Info of Prints...")
+	fmt.Printf("Info of Prints...\n")
 
 	printerArgs := make([]string, 2)
 	printerArgs[0] = "-info"
 	var printJobs []PrintingJobs
+	log.Println(r.FormValue("printers"))
 
 	err := json.Unmarshal([]byte(r.FormValue("printers")), &printJobs)
 	if err != nil {
-		w.WriteHeader(440)
+		log.Println(err)
+		log.Println(r.FormValue("printers"))
+		w.WriteHeader(400)
 		return
 	}
 	length := len(printJobs)
@@ -272,6 +280,7 @@ func infoPrints(w http.ResponseWriter, r *http.Request) {
 		printerArgs[i*2+1] = strings.Trim(string(s), "[]")
 	}
 
+	log.Panicln(printerArgs)
 	cmd := exec.Command("./cupscli", printerArgs...)
 	infos, err := cmd.Output()
 	if checkError(err) {
@@ -283,12 +292,15 @@ func infoPrints(w http.ResponseWriter, r *http.Request) {
 }
 
 func infoAllPrints(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Info of all Prints...")
+	fmt.Printf("Info of all Prints...\n")
 
 	cookie, err := r.Cookie("session_token")
-	if err != nil {
+	fmt.Printf("%s %s\n", cookie, err)
+	fmt.Println(sessions)
+	if err == nil {
 		session, e := getSession(cookie.Value)
-		if e != 1 {
+		fmt.Printf("%s %d\n", session.Session, e)
+		if e != -1 {
 			length := len(session.PrintJobs)
 			printerArgs := make([]string, length*2+2)
 			printerArgs[0] = "-info"
@@ -300,15 +312,16 @@ func infoAllPrints(w http.ResponseWriter, r *http.Request) {
 				printerArgs[i+1] = strings.Trim(string(s), "[]")
 				i += 2
 			}
-
+			fmt.Println(printerArgs)
 			cmd := exec.Command("./cupscli", printerArgs...)
 			infos, err := cmd.Output()
 			if checkError(err) {
+				w.WriteHeader(400)
 				return
 			}
 
 			fmt.Fprint(w, string(infos))
-			fmt.Print(string(infos))
+			fmt.Println("Output: " + string(infos))
 			return
 		}
 	}
@@ -316,12 +329,12 @@ func infoAllPrints(w http.ResponseWriter, r *http.Request) {
 }
 
 func cancelPrint(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Canceling Print...")
+	fmt.Printf("Canceling Print...\n")
 
 	cookie, err := r.Cookie("session_token")
-	if err != nil {
+	if err == nil {
 		session, e := getSession(cookie.Value)
-		if e != 1 {
+		if e != -1 {
 			cmd := exec.Command("./cupscli", "-cancel", r.FormValue("printers"), session.Username, session.Password,
 				r.FormValue("jobID"))
 			infos, err := cmd.Output()

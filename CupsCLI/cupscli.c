@@ -177,7 +177,7 @@ void requestJobInfo(cups_dest_t *dest, int jobID, char* printer) {
             ipp_uchar_t* date = (ipp_uchar_t*)ippGetDate(attr, 0);
             sprintf(dateStr, "%d.%d.%d %d:%d", date[3], date[2], date[0] * 256 + date[1],date[4] + 2, date[5]);
         }
-		printf("job-state: %d %d  %s %s -%s\n", jobID, state, dateStr, printer, name);
+		printf("job-state: %d %d %s %s +%s\n", jobID, state, dateStr, printer, name);
 	}
 	else
 	puts("job-state: unknown");
@@ -189,7 +189,6 @@ void requestJobInfo(cups_dest_t *dest, int jobID, char* printer) {
 		for (i = 0; i < count; i ++)
 			printf("job-state-reason: %s\n", ippGetString(attr, i, NULL));
 	}
-
 	ippDelete(response);
 }
 
@@ -315,15 +314,14 @@ int main(int argc, char **argv)
 
 		} else if (strcmp(argv[1], "-info") == 0) { //get print job info with args length, ['printer name', ['job id']]
 
-
-			int length = atoi(argv[3]);
+			int length = atoi(argv[2]);
 			for (int i = 0; i < length; i++)
 			{
 				PrinterDest dests = {0, NULL};
 				cupsEnumDests(CUPS_DEST_FLAGS_NONE, 1000, NULL, 0, 0, (cups_dest_cb_t)getPrinterDest, &dests);
-				cups_dest_t* printerDest = cupsGetDest(argv[2 + 2 * i], NULL, dests.numDests, dests.dests);
+				cups_dest_t* printerDest = cupsGetDest(argv[3 + 2 * i], NULL, dests.numDests, dests.dests);
 
-				infoPrint(printerDest, length, argv[3 + 2 * i], argv[2 + 2 * i]);
+				infoPrint(printerDest, length, argv[4 + 2 * i], argv[3 + 2 * i]);
 			}
 		} else if (strcmp(argv[1], "-cancel") == 0) { //cancel print job with args 'printer name', 'user name', 'password', 'job id'
 			User userData = {argv[3], argv[4]};

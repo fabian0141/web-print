@@ -2,6 +2,7 @@
 document.getElementById('pageNum').textContent = 0;
 document.getElementById('pageCount').textContent = 0;
 
+console.log("Cookies: " + document.cookie);
 
 var pagesToPrint = new Array();
 var jobID = -1;
@@ -30,6 +31,11 @@ function pagesSelectionChanged() {
 	renderPage(pagesToPrint[pageNum]);
 }
 
+$("#printForm").on("submit", function (e) {
+	document.getElementById("fullgraybackground").style.display = "flex";
+
+});
+
 $('#inputFile').change( function(event) {
 
 	var url = URL.createObjectURL(event.target.files[0]);
@@ -37,8 +43,10 @@ $('#inputFile').change( function(event) {
     /**
      * Asynchronously downloads PDF.
      */
-     pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
+    pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
      	pdfDoc = pdfDoc_;
+		bufferedImages = new Array(pdfDoc.numPages);
+		maxSides = pdfDoc.numPages;
      	document.getElementById('pageCount').textContent = pdfDoc.numPages;
 
      	pagesToPrint = new Array();
@@ -76,36 +84,32 @@ ctx = canvas.getContext('2d');
  */
  function renderPage(num) {
  	pageRendering = true;
-  // Using promise to fetch the page
-  console.log(num);
 
-  pdfDoc.getPage(num).then(function(page) {
-  	var viewport = page.getViewport({scale: scale});
-  	canvas.height = viewport.height;
-  	canvas.width = viewport.width;
+	pdfDoc.getPage(num).then(function(page) {
+  		var viewport = page.getViewport({scale: scale});
+  		canvas.height = viewport.height;
+  		canvas.width = viewport.width;
 
-    // Render PDF page into canvas context
-    var renderContext = {
-    	canvasContext: ctx,
-    	viewport: viewport
-    };
-    var renderTask = page.render(renderContext);
+		var renderContext = {
+			canvasContext: ctx,
+			viewport: viewport
+		};
+		var renderTask = page.render(renderContext);
 
-    // Wait for rendering to finish
-    renderTask.promise.then(function() {
-		pdfImage = ctx.getImageData(0, 0, canvas.width, canvas.height);
-		makeAdjustedImage();
-    	pageRendering = false;
-    	if (pageNumPending !== null) {
-        // New page rendering is pending
-        renderPage(pageNumPending);
-        pageNumPending = null;
-    }
-});
-});
+		// Wait for rendering to finish
+		renderTask.promise.then(function() {
+			bufferedImages[num] = ctx.getImageData(0, 0, canvas.width, canvas.height);
+			makeAdjustedImage();
+			pageRendering = false;
+			if (pageNumPending !== null) {
+			// New page rendering is pending
+				renderPage(pageNumPending);
+				pageNumPending = null;
+			}
+		});
+	});
 
-  // Update page counters
-  document.getElementById('pageNum').textContent = num;
+	//document.getElementById('pageNum').textContent = num;
 }
 
 /**
@@ -130,7 +134,6 @@ ctx = canvas.getContext('2d');
  	pageNum--;
  	queueRenderPage(pagesToPrint[pageNum]);
  }
- document.getElementById('prev').addEventListener('click', onPrevPage);
 
 /**
  * Displays next page.
@@ -142,7 +145,6 @@ ctx = canvas.getContext('2d');
  	pageNum++;
  	queueRenderPage(pagesToPrint[pageNum]);
  }
- document.getElementById('next').addEventListener('click', onNextPage);
 
  var dropArea = document.getElementById('background');
 
@@ -228,4 +230,18 @@ ctx = canvas.getContext('2d');
  function showLessOptions() {
 	$('#moreOptions').show();
 	$('#additionalOptions').hide();
+}
+
+function nextSide() {
+	curSide = mod(++curSide, maxSides);
+}
+document.getElementById('next').addEventListener('click', nextSide);
+
+function prevSide() {
+	curSide = mod (--curSide, maxSides);
+}
+document.getElementById('prev').addEventListener('click', prevSide);
+
+function mod(n, m) {
+	return ((n % m) + m) % m;
 }
