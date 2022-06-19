@@ -176,7 +176,7 @@ void requestJobInfo(cups_dest_t *dest, int jobID, char* printer) {
         if ((attr = ippFindAttribute(response, "date-time-at-creation", IPP_TAG_DATE)) != NULL)
         {
             ipp_uchar_t* date = (ipp_uchar_t*)ippGetDate(attr, 0);
-            sprintf(dateStr, "%d.%d.%d %d:%d", date[3], date[2], date[0] * 256 + date[1],date[4] + 2, date[5]);
+            sprintf(dateStr, "%02d.%02d.%d %02d:%02d", date[3], date[2], date[0] * 256 + date[1],(date[4] + 2) % 24, date[5]);
         }
 		printf("job-state: %d %d %s %s +%s\n", jobID, state, dateStr, printer, name);
 	}
@@ -231,7 +231,7 @@ void cancelPrint(cups_dest_t *dest, char* user, int jobID)
     	printf("Cancel failed\n");
     }
 	printf(ippErrorString(status));
-	printf("%d",jobID);
+	printf(" %d\n",jobID);
 }
 
 int running = 1;

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -29,8 +30,8 @@ type Context struct {
 }
 
 type PrintingJobs struct {
-	Printer string   `json:"printer"`
-	Jobs    []string `json:"jobs"`
+	Printer string `json:"printer"`
+	Jobs    []int  `json:"jobs"`
 }
 
 type Session struct {
@@ -131,6 +132,27 @@ func showPrintPage(w http.ResponseWriter, r *http.Request) {
 	context := Context{
 		Printers: printerNames,
 	}
+
+	cookie, err := r.Cookie("session_token")
+	var session *Session
+	if err == nil {
+		fmt.Println(err, cookie)
+		session, _ = getSession(cookie.Value)
+	}
+
+	if session == nil {
+		sessionToken := uuid.NewString()
+		expiresAt := time.Now().Add(24 * time.Hour)
+		session = &Session{sessionToken, r.FormValue("username"), r.FormValue("password"), make(map[string][]string, 0), expiresAt, false, false}
+		addSession(session)
+
+		http.SetCookie(w, &http.Cookie{
+			Name:    "session_token",
+			Value:   sessionToken,
+			Expires: expiresAt,
+		})
+	}
+
 	templates.Lookup("doc").Execute(w, context) //Add Printer List to choose from
 }
 
@@ -155,22 +177,14 @@ func print(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_token")
 	var session *Session
 	if err == nil {
-		fmt.Println(err, cookie)
 		session, _ = getSession(cookie.Value)
 	}
-
 	if session == nil {
-		sessionToken := uuid.NewString()
-		expiresAt := time.Now().Add(24 * time.Hour)
-		session = &Session{sessionToken, r.FormValue("username"), r.FormValue("password"), make(map[string][]string, 0), expiresAt, false, false}
-		addSession(session)
-
-		http.SetCookie(w, &http.Cookie{
-			Name:    "session_token",
-			Value:   sessionToken,
-			Expires: expiresAt,
-		})
+		fmt.Println(sessions)
+		w.WriteHeader(403)
+		return
 	}
+
 	setSendingStatus(session)
 
 	var buf bytes.Buffer
@@ -261,12 +275,10 @@ func infoPrints(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Info of Prints...\n")
 
 	var printJobs []PrintingJobs
-	log.Println(r.FormValue("printers"))
 
 	err := json.Unmarshal([]byte(r.FormValue("printers")), &printJobs)
 	if err != nil {
 		log.Println(err)
-		log.Println(r.FormValue("printers"))
 		w.WriteHeader(400)
 		return
 	}
@@ -282,7 +294,6 @@ func infoPrints(w http.ResponseWriter, r *http.Request) {
 		printerArgs[i*2+3] = strings.Trim(string(s), "[]")
 	}
 
-	log.Println(printerArgs)
 	cmd := exec.Command("./cupscli", printerArgs...)
 	infos, err := cmd.Output()
 	if checkError(err) {
@@ -311,7 +322,8 @@ func infoAllPrints(w http.ResponseWriter, r *http.Request) {
 			for printer, jobs := range session.PrintJobs {
 				printerArgs[i] = printer
 				s, _ := json.Marshal(jobs)
-				printerArgs[i+1] = strings.Trim(string(s), "[]")
+				re, _ := regexp.Compile(`[\"\[\]]`)
+				printerArgs[i+1] = re.ReplaceAllString(string(s), "")
 				i += 2
 			}
 			fmt.Println(printerArgs)
@@ -490,7 +502,8 @@ func checkCancelation(session *Session, printers string, jobID string) {
 	lock.Lock()
 	defer lock.Unlock()
 	if (*session).Cancel {
-		cancelJob(printers, (*session).Username, (*session).Password, jobID)
+		infos, _ := cancelJob(printers, (*session).Username, (*session).Password, jobID)
+		fmt.Println(string(infos))
 	}
 	(*session).SendJob = false
 	(*session).Cancel = false
