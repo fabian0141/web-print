@@ -10,21 +10,29 @@ var isVertical = true;
 var oldIsVertical = true;
 var oldOrientation = false;
 var bufferedImages;
+var oldestLoadedImage = 0; 
 var curSide = 0;
 var maxSides = 0;
 var maxPages = 0;
+var pageScaling = 0;
 
 function setBW(bw) {
 	isBW = bw;
     makeAdjustedImage();
 }
 
+function setPageScaling(ps) {
+	pageScaling = ps;
+    makeAdjustedImage();
+}
+
 function setTiles() {
     pagesPerSide = parseInt($('#pagespersheet').val());
 
+    curSide = 0;
     maxSides = Math.ceil(maxPages / pagesPerSide);
     document.getElementById('pageCount').textContent = maxSides;
-    document.getElementById('pageNum').textContent = curSide + 1;
+    document.getElementById('pageNum').textContent = 1;
     makeAdjustedImage();
 }
 
@@ -75,69 +83,139 @@ function resize(factor, imgData) {
     return tilesImage;
 }
 
-function addTiledImage(tilesImage, oldData, widthTiles, heightTiles) {
-    var imgData;
-    if (oldData.width > oldData.height) {
-        var tmp = widthTiles;
-        widthTiles = heightTiles;
-        heightTiles = tmp;
+function scalePage(imgData) {
+    console.log(pageScaling);
+    if (pageScaling == 0) {
+        return imgData;
     }
+    var newHeight = imgData.width <= imgData.height ? 1683 : 1190;
+    var newWidth = imgData.width <= imgData.height ? 1190 : 1683;
+    var tilesImage = new ImageData(newWidth, newHeight);
+    var offsetX = 0;
+    var offsetY = 0;
     
-    if (widthTiles == heightTiles) {
-        imgData = new ImageData(oldData.width, oldData.height);
-    } else {
-        imgData = new ImageData(oldData.height, oldData.width);
-        isVertical = !isVertical;
-    }
-
-    for (x = 0; x < tilesImage.width * 4; x += 4) {
-        for (y = 0; y < tilesImage.height; y++) {
-            for (i = 0; i < widthTiles; i++) {
-                for (j = 0; j < heightTiles; j++) {
-                    var pos = x + i * tilesImage.width * 4 + (y + j * tilesImage.height) * imgData.width * 4;
-                    var oldPos = x + y * tilesImage.width * 4;
-
-                    imgData.data[pos] = tilesImage.data[oldPos]
-                    imgData.data[pos + 1] = tilesImage.data[oldPos + 1]
-                    imgData.data[pos + 2] = tilesImage.data[oldPos + 2]
-                    imgData.data[pos + 3] = tilesImage.data[oldPos + 3]
-                }
+    if (pageScaling == 1) {
+        for (x = 0; x < tilesImage.width * 4; x += 4) {
+            for (y = 0; y < tilesImage.height; y++) {
+                tilesImage.data[x + (y * tilesImage.width * 4)] = 255;
+                tilesImage.data[x + (y * tilesImage.width * 4) + 1] = 255;
+                tilesImage.data[x + (y * tilesImage.width * 4) + 2] = 255;
+                tilesImage.data[x + (y * tilesImage.width * 4) + 3] = 1;
             }
         }
+        newWidth = Math.floor(newWidth * 0.95);
+        newHeight = Math.floor(newHeight * 0.95);
+        offsetX = Math.ceil(newWidth * 0.025);
+        offsetY = Math.ceil(newHeight * 0.025);
     }
-    return imgData;
+
+
+    var factor = imgData.width / newWidth;
+    if (Math.abs(1 - factor) < 0.001) {
+        return imgData;
+    }
+
+    for (x = 0; x < newWidth; x++) {
+        for (y = 0; y < newHeight; y++) {
+            var pos = (x + offsetX + (y + offsetY) * tilesImage.width) * 4;
+
+            var xFactor = x * factor;
+            var xFactorF = Math.floor(xFactor);
+
+            var yFactor = y * factor;
+            var yFactorF = Math.floor(yFactor);
+            
+            //bilinear interpolation algorithm
+            var point1 = xFactorF * 4 + yFactorF * imgData.width * 4;
+            var point2 = point1 + 4;
+            var point3 = xFactorF * 4 + (yFactorF + 1) * imgData.width * 4;
+            var point4 = point3 + 4;
+
+            var weight1 = 1 - (xFactor - xFactorF);
+            var weight2 = 1 - (yFactor - yFactorF);
+
+
+            var p1 = new Vec3(imgData.data[point1] * weight1 + imgData.data[point2] * (1 - weight1),
+                imgData.data[point1 + 1] * weight1 + imgData.data[point2 + 1] * (1 - weight1),
+                imgData.data[point1 + 2] * weight1 + imgData.data[point2 + 2] * (1 - weight1));
+
+            var p2 = new Vec3(imgData.data[point3] * weight1 + imgData.data[point4] * (1 - weight1),
+                imgData.data[point3 + 1] * weight1 + imgData.data[point4 + 1] * (1 - weight1),
+                imgData.data[point3 + 2] * weight1 + imgData.data[point4 + 2] * (1 - weight1));
+
+            var color = new Vec3(p1.x * weight2 + p2.x * (1 - weight2),
+                p1.y * weight2 + p2.y * (1 - weight2),
+                p1.z * weight2 + p2.z * (1 - weight2));
+
+
+            tilesImage.data[pos] = color.x;
+            tilesImage.data[pos + 1] = color.y;
+            tilesImage.data[pos + 2] = color.z;
+            tilesImage.data[pos + 3] = 255;
+        }
+    }
+    return tilesImage;
 }
 
 async function combinePages(widthTiles, heightTiles, resizeFactor, changeOrientation) {
-    pageIdx = curSide * pagesPerSide;
+    idx = curSide * pagesPerSide;
+    pageIdx = pagesToPrint[idx];
     var imgData;
     if (changeOrientation) {
         isVertical = !isVertical;
-        console.log("change orientation");
-        imgData = new ImageData(bufferedImages[pageIdx].height, bufferedImages[pageIdx].width);
+        imgData = new ImageData(canvasView.height, canvasView.width);
     } else {
-        imgData = new ImageData(bufferedImages[pageIdx].width, bufferedImages[pageIdx].height);
+        imgData = new ImageData(canvasView.width, canvasView.height);
     }
+    for (x = 0; x < imgData.width * 4; x += 4) {
+        for (y = 0; y < imgData.height; y++) {
+            imgData.data[x + (y * imgData.width * 4)] = 255;
+            imgData.data[x + (y * imgData.width * 4) + 1] = 255;
+            imgData.data[x + (y * imgData.width * 4) + 2] = 255;
+            imgData.data[x + (y * imgData.width * 4) + 3] = 1;
+        }
+    }
+
     oldOrientation = changeOrientation;
+    var offsetX = 0;
+    var offsetY = 0;
+    if (widthTiles == 3 && heightTiles == 2) {
+        if (imgData.width >= imgData.height) {
+            offsetX = 572;
+        } else {
+            offsetY = 210;
+        }
+    }
+
 
     for (i = 0; i < heightTiles; i++) {
         for (j = 0; j < widthTiles; j++) {
+            if (idx >= maxPages) {
+                continue;
+            }
+
             if (bufferedImages[pageIdx] == null) {
                 await renderPage(pageIdx);
             }
+
+            var scaledImage = scalePage(bufferedImages[pageIdx]);
+
             var tilesImage;
             if (resizeFactor == 1) {
                 var tilesImage = new ImageData(
-                    new Uint8ClampedArray(bufferedImages[pageIdx].data),
-                    bufferedImages[pageIdx].width,
-                    bufferedImages[pageIdx].height)
+                    new Uint8ClampedArray(scaledImage.data),
+                    scaledImage.width,
+                    scaledImage.height)
             } else {
-                tilesImage = resize(resizeFactor, bufferedImages[pageIdx])
+                tilesImage = resize(resizeFactor, scaledImage)
             }
+
+            var maxWidth = Math.floor((tilesImage.width <= tilesImage.height ? 1190 : 1683) / resizeFactor);
+            var maxHeight = Math.floor((tilesImage.width <= tilesImage.height ? 1683 : 1190) / resizeFactor);
             
-            for (x = 0; x < tilesImage.width * 4; x += 4) {
-                for (y = 0; y < tilesImage.height; y++) {
-                    var pos = x + j * tilesImage.width * 4 + (y + i * tilesImage.height) * imgData.width * 4;
+            for (x = 0; x < tilesImage.width * 4 && x  <= maxWidth * 4; x += 4) {
+                for (y = 0; y < tilesImage.height && y  <= maxHeight; y++) {
+                    var pos = offsetX + x + (y + offsetY) * imgData.width * 4 + j * maxWidth * 4 + i * maxHeight * imgData.width * 4;
                     var oldPos = x + y * tilesImage.width * 4;
 
                     imgData.data[pos] = tilesImage.data[oldPos];
@@ -146,14 +224,14 @@ async function combinePages(widthTiles, heightTiles, resizeFactor, changeOrienta
                     imgData.data[pos + 3] = tilesImage.data[oldPos + 3];
                 }
             }
-            pageIdx++;
+            pageIdx = pagesToPrint[++idx];
         }
     }
     return imgData;
 }
 
 async function makeAdjustedImage() {
-    pageIdx = curSide * pagesPerSide;
+    pageIdx = pagesToPrint[curSide * pagesPerSide];
 
     if (bufferedImages[pageIdx] == null) {
         await renderPage(pageIdx);
@@ -184,6 +262,8 @@ async function makeAdjustedImage() {
                 imgData = await combinePages(4,4, 4, false);
                 break;
         }
+    } else {
+        imgData = scalePage(imgData);
     }
 
     if (isBW) {
@@ -197,18 +277,16 @@ async function makeAdjustedImage() {
         }
     }
 
-    console.log(isVertical + " " + oldIsVertical + " " + canvas.width + " " + canvas.height);
-
-    if (isVertical && canvas.width > canvas.height) {
-        var tmp = canvas.width;
-        canvas.width = canvas.height;
-        canvas.height = tmp;
-    } else if (!isVertical && canvas.width < canvas.height) {
-        var tmp = canvas.width;
-        canvas.width = canvas.height;
-        canvas.height = tmp;
+    if (isVertical && canvasView.width > canvasView.height) {
+        var tmp = canvasView.width;
+        canvasView.width = canvasView.height;
+        canvasView.height = tmp;
+    } else if (!isVertical && canvasView.width < canvasView.height) {
+        var tmp = canvasView.width;
+        canvasView.width = canvasView.height;
+        canvasView.height = tmp;
     }
-    ctx.putImageData(imgData, 0, 0);
+    ctxView.putImageData(imgData, 0, 0);
 }
 
 class Vec3 {

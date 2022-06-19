@@ -28,7 +28,7 @@ function getAllJobs() {
                 cell.innerHTML = date;
                 cell = row.insertCell(2);
                 var cell3 = row.insertCell(3);
-                cell3.innerHTML = '<button class="w3-button w3-brown w3-round" onclick="cancelPrintJob(' + job + ', "' + printer + '")">Abbrechen</button>';
+                cell3.innerHTML = '<button class="w3-button w3-brown w3-round" onclick="cancelPrintJob(' + job + ', \'' + printer + '\')">Abbrechen</button>';
 
                 switch (state) {
                     case 3:
@@ -100,38 +100,38 @@ function getPrintInfo() {
                 if (splitData[i].startsWith("job-state:")) {
 
                     var jobStateDate = splitData[i].split(" ");
-                    var job = jobStateDate[1];
-                    var state = jobState = jobStateDate[2];
-                    var rowIdx = jobRows[job].idx;
+                    var job = parseInt(jobStateDate[1]);
+                    var state = parseInt(jobStateDate[2]);
+                    var rowIdx = jobRows.get(job).idx;
 
                     if (state != 3 && state != 5) {
-                        jobRow.delete(job)
+                        jobRow.delete(job);
                     }
 
                     switch (state) {
                         case 3:
-                            document.getElementById('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck ist in der Warteschlange";
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck ist in der Warteschlange";
                             break;
                         case 4:
-                            document.getElementById('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde angehalten";
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde angehalten";
                             break;
                         case 5:
-                            document.getElementById('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Das Dokument wird gedruckt";
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Das Dokument wird gedruckt";
                             break;
                         case 6:
-                            document.getElementById('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde gestoppt";
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde gestoppt";
                             break;
                         case 7:
-                            document.getElementById('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde von dir abgebrochen";
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde von dir abgebrochen";
                             break;
                         case 8:
-                            document.getElementById('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde vom Drucker abgebrochen";
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde vom Drucker abgebrochen";
                             break;
                         case 9:
-                            document.getElementById('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Das Dokument wurde gedruckt";
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Das Dokument wurde gedruckt";
                             break;
                         default:
-                            document.getElementById('#jobsTable').rows[rowIdx].cells[2].innerHTML = "Unbekannt";
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Unbekannt";
                             console.log(state);
                     }
                 } else {
@@ -150,12 +150,14 @@ function getPrintInfo() {
 
 function cancelPrintJob(id , printer) {
 
+    console.log("Cancel print: " + id)
+
     var formData = new FormData();
     formData.append('printers', printer);
     formData.append('jobID', id);
 
     $.ajax({url: "/cancel-print", data: formData, processData: false, contentType: false, type: 'POST', success: function(data) {
-        infoPause = true;
-        document.getElementById("printState").textContent = data;
+        alert(data);
+        console.log(data);
     }});
 }

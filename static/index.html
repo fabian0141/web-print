@@ -66,11 +66,11 @@
                 <input type="radio" id="twosided" value="two-sided-long-edge" name="sides"><label for="twosided" id="twosidedlabel"> Doppelseitig (über lange Seite)</label><br>
                 <input type="radio" id="twosidedshort" value="two-sided-short-edge" name="sides"><label for="twosidedshort" id="twosidedshortlabel"> Doppelseitig (über kurze Seite)</label><br><br>
 
-                <label for="portrait">Orientierung:</label><br>
+                <!--<label for="portrait">Orientierung:</label><br>
                 <input type="radio" id="portrait" value="3" name="orientation" checked><label for="portrait"> Vertikal</label><br>
                 <input type="radio" id="landscape" value="4" name="orientation"><label for="landscape"> Horizontal</label><br>
                 <input type="radio" id="revportrait" value="6" name="orientation"><label for="revportrait"> Umgekehrt Vertikal</label><br>
-                <input type="radio" id="revlandscape" value="5" name="orientation"><label for="revlandscape"> Umgekehrt Horizontal</label><br><br>
+                <input type="radio" id="revlandscape" value="5" name="orientation"><label for="revlandscape"> Umgekehrt Horizontal</label><br><br>-->
 
 
                 <button id="moreOptions" type="button" onclick="showMoreOptions()">Mehr Optionen</button>
@@ -92,10 +92,9 @@
                     </select><br><br>
 
                     <label>Skalieren:</label><br>
-                    <input type="radio" id="no-scale" value="none" name="scale"><label for="no-scale"> Nicht Skalieren</label><br>
-                    <input type="radio" id="auto-scale" value="auto-fit" name="scale" checked><label for="auto-scale"> Auto Skalieren</label><br>
-                    <input type="radio" id="fit-scale" value="fit" name="scale"><label for="fit-scale"> Druckbarer Bereich</label><br>
-                    <input type="radio" id="fill-scale" value="fill" name="scale"><label for="fill-scale"> Komplette Seite</label><br><br>
+                    <input type="radio" id="no-scale" value="none" name="scale" checked><label for="no-scale" onclick="setPageScaling(0)"> Nicht Skalieren</label><br>
+                    <input type="radio" id="fit-scale" value="fit" name="scale"><label for="fit-scale" onclick="setPageScaling(1)"> Druckbarer Bereich</label><br>
+                    <input type="radio" id="fill-scale" value="fill" name="scale"><label for="fill-scale" onclick="setPageScaling(2)"> Komplette Seite</label><br><br>
 
                     <button id="lessOptions" type="button" onclick="showLessOptions()">Weniger Optionen</button>
                 </div>
@@ -106,10 +105,14 @@
     </form>
 
 <div id="fullgraybackground">
-    <div id="loader">
-        <img id="test" src="static/loading.gif" width="80px"/>
-        <span>Auftrag wird an den Drucker gesendet.</span>
-    </div>
+    <div style="position: relative;margin: auto;">
+        <div id="loader">
+            <img id="test" src="static/loading.gif" width="80px"/><br id="breakLoader" />
+            <span id="printingMessage" style="text-align: center;">Auftrag wird an den Drucker gesendet.</span>
+        </div>
+        <br/>
+        <button id="cancelCurPrintBut" class="w3-button w3-brown w3-round" style="display: block; margin: 0 auto; font-size: 1.5em;" onclick="cancelCurPrint()">Abbrechen</button>
+</div>
 </div>
 
 
@@ -121,6 +124,8 @@
         <h1 style="font-size: 50px"><b>Füge Dokument hinzu</b></h1>
     </div>
 </div>
+
+<canvas id="pdf-loading-canvas"></canvas>
 
 </body>
 </html>

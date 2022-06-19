@@ -68,22 +68,24 @@ void addRanges(ipp_t *request, char* ranges)
 	}
 
 	char *range, *min, *max;
-	uint8_t i;
-	for (i = 1, range = strtok(ranges,","); range != NULL; range = strtok(NULL,","), i++) {
+	for (range = strtok_r(ranges, ",", &ranges); range != NULL; range = strtok_r(ranges, ",", &ranges)) {
 		min = strtok(range, "-");
 		max = strtok(NULL, "-");
 		if (max == NULL) {
 			ippAddRange(request, IPP_TAG_OPERATION, "page-ranges", atoi(min), atoi(min));
+			printf("Range: %d\n", atoi(min));
 		} else {
 			ippAddRange(request, IPP_TAG_OPERATION, "page-ranges", atoi(min), atoi(max));
+			printf("Range: %d %d\n", atoi(min), atoi(max));
 		}
-	    //printf("Output%u=%s;\n", i, p);
 	}
 }
 
 
 void printDocument(cups_dest_t *dest, char** options)
 {
+	printf("Print: %s\n", options[0]);
+
 	const char *filetype = "application/pdf";
 	http_t *http;
 	ipp_t *request, *response;
@@ -102,9 +104,8 @@ void printDocument(cups_dest_t *dest, char** options)
 	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "print-color-mode", NULL, options[4]);
 	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "sides", NULL, options[5]);
 	ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "print-quality", atoi(options[6]));
-	ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "orientation-requested", atoi(options[7]));
-	ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "number-up", atoi(options[8]));
-	ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "print-scaling", atoi(options[9]));
+	ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "number-up", atoi(options[7]));
+	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_KEYWORD, "print-scaling", NULL, options[8]);
 
 
 
@@ -128,12 +129,12 @@ void printDocument(cups_dest_t *dest, char** options)
 	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "job-name", NULL, options[0]);
 	addRanges(request, options[2]);
 	ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_INTEGER, "copies", atoi(options[3]));
-	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "print-color-mode", NULL, options[4]);
-	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "sides", NULL, options[5]);
+	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_KEYWORD, "print-color-mode", NULL, options[4]);
+	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_KEYWORD, "sides", NULL, options[5]);
 	ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "print-quality", atoi(options[6]));
-	ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "orientation-requested", atoi(options[7]));
-	ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "number-up", atoi(options[8]));
-	ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "print-scaling", atoi(options[9]));
+	ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "number-up", atoi(options[7]));
+	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_KEYWORD, "print-scaling", NULL, options[8]);
+
 
 
 	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_MIMETYPE, "document-format", NULL, filetype);
@@ -223,11 +224,14 @@ void cancelPrint(cups_dest_t *dest, char* user, int jobID)
 	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_URI, "printer-uri", NULL, printerUri);
 	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "requesting-user-name", NULL, user);
 
-    if (cupsCancelDestJob(http, dest, jobID) == IPP_STATUS_OK) {
+	ipp_status_t status = cupsCancelDestJob(http, dest, jobID);
+    if (status == IPP_STATUS_OK) {
     	printf("Cancel succeeded\n");
     } else {
     	printf("Cancel failed\n");
     }
+	printf(ippErrorString(status));
+	printf("%d",jobID);
 }
 
 int running = 1;
@@ -299,17 +303,17 @@ int main(int argc, char **argv)
 			free(printerInfo.printersToIgnore);
 
 		//Send print job with args 	'printer name', 'title', 'file location', 'user name', 'password', 'page selection', 'amount of copies',
-		//							'color', 'one/two-sided', 'quality', 'orientation', 'pages per sheet', 'scale' 	
+		//							'color', 'one/two-sided', 'quality', 'pages per sheet', 'scale' 	
 		} else if (strcmp(argv[1], "-print") == 0) {
-
 			User userData = {argv[5], argv[6]};
 			cupsSetPasswordCB2((cups_password_cb2_t)getPassword, &userData);		
 
 			PrinterDest dests = {0, NULL};
+
 			cupsEnumDests(CUPS_DEST_FLAGS_NONE, 1000, NULL, 0, 0, (cups_dest_cb_t)getPrinterDest, &dests);
 			cups_dest_t* printerDest = cupsGetDest(argv[2], NULL, dests.numDests, dests.dests);
 
-			char* options[10] = {argv[4], argv[5], argv[7], argv[8], argv[9], argv[10], argv[11], argv[12], argv[13], argv[14]};
+			char* options[9] = {argv[4], argv[5], argv[7], argv[8], argv[9], argv[10], argv[11], argv[12], argv[13]};
 			printDocument(printerDest, options);
 
 		} else if (strcmp(argv[1], "-info") == 0) { //get print job info with args length, ['printer name', ['job id']]

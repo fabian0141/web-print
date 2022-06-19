@@ -9,29 +9,41 @@ var jobID = -1;
 
 function pagesSelectionChanged() {
 	var pageSelection = document.getElementById("pages").value;
-	var maxPages = pagesToPrint.length;
 
 	pagesToPrint = new Array();
-	var pagesIdx = 0;
-	pageRanges = pageSelection.split(',');
 
-	for (var i = 0; i < pageRanges.length; i++) {
-		minMax = pageRanges[i].split('-');
-		if (minMax.length == 1) {
-			pagesToPrint[pagesIdx++] = parseInt(minMax[0]);
-		} else {
-			for (var i = parseInt(minMax[0]); i <= parseInt(minMax[1]); i++) {
-				pagesToPrint[pagesIdx++] = i;
+	if (pageSelection == "") {
+		for (var i = 0; i < pdfDoc.numPages; i++) {
+			pagesToPrint[i] = i;
+		}
+	} else {
+		var pagesIdx = 0;
+		pageRanges = pageSelection.split(',');
+	
+		for (var i = 0; i < pageRanges.length; i++) {
+			minMax = pageRanges[i].split('-');
+			if (minMax.length == 1) {
+				pagesToPrint[pagesIdx++] = parseInt(minMax[0]) - 1;
+			} else {
+				for (var j = parseInt(minMax[0]); j <= parseInt(minMax[1]); j++) {
+					pagesToPrint[pagesIdx++] = j - 1;
+				}
 			}
 		}
 	}
-	console.log(pagesToPrint[0] + " " + pagesToPrint.length);
 
-	pageNum = 0;
-	//renderPage(pagesToPrint[pageNum]);
+    curSide = 0;
+	maxPages = pagesToPrint.length;
+    maxSides = Math.ceil(maxPages / pagesPerSide);
+    document.getElementById('pageCount').textContent = maxSides;
+    document.getElementById('pageNum').textContent = 1;
+	console.log(pagesToPrint[0] + " " + maxSides);
+
+	makeAdjustedImage();
 }
 
 $("#printForm").on("submit", function (e) {
+	document.getElementById('cancelCurPrintBut').style.display = "block";
 	document.getElementById("fullgraybackground").style.display = "flex";
 
 });
@@ -50,10 +62,11 @@ $('#inputFile').change( function(event) {
 		document.getElementById('pageNum').textContent = 1;
 		curSide = 0;
 		maxPages = pdfDoc.numPages;
+		maxSides = maxPages;
 
      	pagesToPrint = new Array();
      	for (var i = 0; i < pdfDoc.numPages; i++) {
-     		pagesToPrint[i] = i + 1;
+     		pagesToPrint[i] = i;
      	}
 
         // Initial/first page rendering
@@ -77,30 +90,44 @@ pageNum = 0,
 pageRendering = false,
 pageNumPending = null,
 scale = 2,
-canvas = document.getElementById('the-canvas'),
-ctx = canvas.getContext('2d');
-
+canvasView = document.getElementById('the-canvas'),
+ctxView = canvasView.getContext('2d');
+loadingCanvas = document.getElementById('pdf-loading-canvas');
+loadingCtx = loadingCanvas.getContext('2d');
 
 /**
  * Get page info from document, resize canvas accordingly, and render page.
  * @param num Page number.
  */
 async function renderPage(num) {
-	console.log("Render Page: " + num);
  	pageRendering = true;
+	while(window.performance.memory.jsHeapSizeLimit - 200000000 < window.performance.memory.usedJSHeapSize) {
+		bufferedImages[oldestLoadedImage] = null
+		oldestLoadedImage = (oldestLoadedImage + 1) % bufferedImages.length;
+	}
 
 	var page = await pdfDoc.getPage(num+1)
 	var viewport = page.getViewport({scale: scale});
-	canvas.height = viewport.height;
-	canvas.width = viewport.width;
+	if (viewport.height >= viewport.width) {
+		canvasView.width = 1190;
+		canvasView.height = 1683;
+	} else {
+		canvasView.width = 1683;
+		canvasView.height = 1190;
+	}
 
-		var renderContext = {
-		canvasContext: ctx,
+	loadingCanvas.height = viewport.height;
+	loadingCanvas.width = viewport.width;
+
+
+
+	var renderContext = {
+		canvasContext: loadingCtx,
 		viewport: viewport
 	};
 
 	await page.render(renderContext).promise;
-	bufferedImages[num] = ctx.getImageData(0, 0, canvas.width, canvas.height);
+	bufferedImages[num] = loadingCtx.getImageData(0, 0, loadingCanvas.width, loadingCanvas.height);
 
 	pageRendering = false;
 	if (pageNumPending !== null) {
@@ -209,10 +236,11 @@ function dropDocument(e) {
 			 	document.getElementById('pageNum').textContent = 1;
 				curSide = 0;
 				maxPages = pdfDoc.numPages;
+				maxSides = maxPages;
 
  				pagesToPrint = new Array();
  				for (var i = 0; i < pdfDoc.numPages; i++) {
- 					pagesToPrint[i] = i + 1;
+ 					pagesToPrint[i] = i;
  				}
 
  				document.getElementById("pages").value = "";
@@ -237,16 +265,28 @@ function dropDocument(e) {
 
 function nextSide() {
 	curSide = mod(++curSide, maxSides);
+	document.getElementById('pageNum').textContent = curSide + 1;
 	makeAdjustedImage();
 }
 document.getElementById('next').addEventListener('click', nextSide);
 
 function prevSide() {
 	curSide = mod (--curSide, maxSides);
+	document.getElementById('pageNum').textContent = curSide + 1;
 	makeAdjustedImage();
 }
 document.getElementById('prev').addEventListener('click', prevSide);
 
 function mod(n, m) {
 	return ((n % m) + m) % m;
+}
+
+function cancelCurPrint() {
+    var formData = new FormData();
+
+    $.ajax({url: "/cancel-current-print", data: formData, processData: false, contentType: false, type: 'POST', success: function(data) {
+		document.getElementById('printingMessage').textContent = data;
+		document.getElementById('cancelCurPrintBut').style.display = "none";
+        console.log(data);
+    }});
 }
