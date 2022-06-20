@@ -104,28 +104,28 @@
         </div>
     </form>
 
-<div id="fullgraybackground">
-    <div style="position: relative;margin: auto;">
-        <div id="loader">
-            <img id="test" src="static/loading.gif" width="80px"/><br id="breakLoader" />
-            <span id="printingMessage" style="text-align: center;">Auftrag wird an den Drucker gesendet.</span>
+    <div id="fullgraybackground">
+        <div style="position: relative;margin: auto;">
+            <div id="loader">
+                <img id="test" src="static/loading.gif" width="80px"/><br id="breakLoader" />
+                <span id="printingMessage" style="text-align: center;">Auftrag wird an den Drucker gesendet.</span>
+            </div>
+            <br/>
+            <button id="cancelCurPrintBut" class="w3-button w3-brown w3-round" style="display: block; margin: 0 auto; font-size: 1.5em;" onclick="cancelCurPrint()">Abbrechen</button>
         </div>
-        <br/>
-        <button id="cancelCurPrintBut" class="w3-button w3-brown w3-round" style="display: block; margin: 0 auto; font-size: 1.5em;" onclick="cancelCurPrint()">Abbrechen</button>
-</div>
-</div>
-
-
- <div id="dragNdropFile">
-    <div>
-        <div style="text-align: center">
-            <img src="static/upload_icon.svg" width="200px">
-        </div>
-        <h1 style="font-size: 50px"><b>Füge Dokument hinzu</b></h1>
     </div>
-</div>
 
-<canvas id="pdf-loading-canvas"></canvas>
+
+    <div id="dragNdropFile">
+        <div>
+            <div style="text-align: center">
+                <img src="static/upload_icon.svg" width="200px">
+            </div>
+            <h1 style="font-size: 50px"><b>Füge Dokument hinzu</b></h1>
+        </div>
+    </div>
+
+    <canvas id="pdf-loading-canvas"></canvas>
 
 </body>
 </html>

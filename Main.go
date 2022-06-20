@@ -143,7 +143,7 @@ func showPrintPage(w http.ResponseWriter, r *http.Request) {
 	if session == nil {
 		sessionToken := uuid.NewString()
 		expiresAt := time.Now().Add(24 * time.Hour)
-		session = &Session{sessionToken, r.FormValue("username"), r.FormValue("password"), make(map[string][]string, 0), expiresAt, false, false}
+		session = &Session{sessionToken, "", "", make(map[string][]string, 0), expiresAt, false, false}
 		addSession(session)
 
 		http.SetCookie(w, &http.Cookie{
@@ -183,6 +183,11 @@ func print(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(sessions)
 		w.WriteHeader(403)
 		return
+	}
+
+	if (*session).Username == "" {
+		(*session).Username = r.FormValue("username")
+		(*session).Password = r.FormValue("password")
 	}
 
 	setSendingStatus(session)

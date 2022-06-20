@@ -63,7 +63,7 @@ function getAllJobs() {
                 console.log(splitData[i]);
             }
         }
-        if (jobRows.length != 0) {
+        if (jobRows.size != 0) {
             getPrintInfo();
         }
     }});
@@ -105,7 +105,7 @@ function getPrintInfo() {
                     var rowIdx = jobRows.get(job).idx;
 
                     if (state != 3 && state != 5) {
-                        jobRow.delete(job);
+                        jobRows.delete(job);
                     }
 
                     switch (state) {
@@ -139,8 +139,7 @@ function getPrintInfo() {
                 }
             }
 
-            if (jobRows.length != 0) {
-                console.log(jobRows.length)
+            if (jobRows.size != 0) {
                 getPrintInfo();
             }
         }});
@@ -151,13 +150,15 @@ function getPrintInfo() {
 function cancelPrintJob(id , printer) {
 
     console.log("Cancel print: " + id)
+    document.getElementById("fullgraybackground").style.display = "flex";
 
     var formData = new FormData();
     formData.append('printers', printer);
     formData.append('jobID', id);
 
     $.ajax({url: "/cancel-print", data: formData, processData: false, contentType: false, type: 'POST', success: function(data) {
-        alert(data);
+        document.getElementById("fullgraybackground").style.display = "none";
+
         console.log(data);
     }});
 }

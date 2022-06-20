@@ -220,17 +220,20 @@ void cancelPrint(cups_dest_t *dest, char* user, int jobID)
 
 	http = httpConnect2("fry", 631, NULL, AF_UNSPEC, HTTP_ENCRYPTION_IF_REQUESTED, 1, 30000, NULL);
 
-	request = ippNewRequest(IPP_OP_GET_JOB_ATTRIBUTES);
+	request = ippNewRequest(IPP_OP_CANCEL_JOB);
 	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_URI, "printer-uri", NULL, printerUri);
+	ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_INTEGER, "job-id", jobID);
 	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "requesting-user-name", NULL, user);
 
-	ipp_status_t status = cupsCancelDestJob(http, dest, jobID);
-    if (status == IPP_STATUS_OK) {
-    	printf("Cancel succeeded\n");
-    } else {
+	ippDelete(cupsDoRequest(http, request, "/jobs"));
+
+	if (cupsLastError() > IPP_STATUS_OK_CONFLICTING)
+    {
     	printf("Cancel failed\n");
-    }
-	printf(ippErrorString(status));
+    } else {
+        printf("Cancel succeeded\n");
+	}
+	printf(ippErrorString(cupsLastError()));
 	printf(" %d\n",jobID);
 }
 
