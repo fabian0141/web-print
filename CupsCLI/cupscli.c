@@ -86,36 +86,49 @@ void printDocument(cups_dest_t *dest, char** options)
 {
 	printf("Print: %s\n", options[0]);
 
+	int tries = 5;
+	int jobID = 0;
 	const char *filetype = "application/pdf";
-	http_t *http;
-	ipp_t *request, *response;
 
+	ipp_t *request, *response;
 	const char *printerUri = cupsGetOption("device-uri", dest->num_options, dest->options);
 	const char *resource = getResourceFromURI(printerUri); 
-
-	http = httpConnect2("fry", 631, NULL, AF_UNSPEC, HTTP_ENCRYPTION_IF_REQUESTED, 1, 30000, NULL);
-
-	request = ippNewRequest(IPP_OP_CREATE_JOB);
-	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_URI, "printer-uri", NULL, printerUri);
-	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "requesting-user-name", NULL, options[1]);
-	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "job-name", NULL, options[0]);
-	addRanges(request, options[2]);
-	ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_INTEGER, "copies", atoi(options[3]));
-	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "print-color-mode", NULL, options[4]);
-	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "sides", NULL, options[5]);
-	ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "print-quality", atoi(options[6]));
-	ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "number-up", atoi(options[7]));
-	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_KEYWORD, "print-scaling", NULL, options[8]);
+	http_t *http;
 
 
+	while (jobID == 0 && tries-- > 0)
+	{
+		http = httpConnect2("fry", 631, NULL, AF_UNSPEC, HTTP_ENCRYPTION_IF_REQUESTED, 1, 30000, NULL);
 
-	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_MIMETYPE, "document-format", NULL, filetype);
-	ippAddBoolean(request, IPP_TAG_OPERATION, "last-document", 1);
+		request = ippNewRequest(IPP_OP_CREATE_JOB);
+		ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_URI, "printer-uri", NULL, printerUri);
+		ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "requesting-user-name", NULL, options[1]);
+		ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "job-name", NULL, options[0]);
+		addRanges(request, options[2]);
+		ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_INTEGER, "copies", atoi(options[3]));
+		ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "print-color-mode", NULL, options[4]);
+		ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "sides", NULL, options[5]);
+		ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "print-quality", atoi(options[6]));
+		ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "number-up", atoi(options[7]));
+		ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_KEYWORD, "print-scaling", NULL, options[8]);
 
-	response = cupsDoFileRequest(http, request, resource, options[0]);
 
 
-	int jobID = ippGetInteger(ippFindAttribute(response, "job-id", IPP_TAG_INTEGER), 0);
+		ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_MIMETYPE, "document-format", NULL, filetype);
+		ippAddBoolean(request, IPP_TAG_OPERATION, "last-document", 1);
+
+		response = cupsDoFileRequest(http, request, resource, options[0]);
+
+
+		jobID = ippGetInteger(ippFindAttribute(response, "job-id", IPP_TAG_INTEGER), 0);
+	}
+
+	if (jobID == 0) {
+		printf("CUPS does not return a job ID.");
+		return;
+	}
+
+
 	printf("Print-Job: %d\n", jobID);
 	ippDelete(response);
 
@@ -233,7 +246,7 @@ void cancelPrint(cups_dest_t *dest, char* user, int jobID)
     } else {
         printf("Cancel succeeded\n");
 	}
-	printf(ippErrorString(cupsLastError()));
+	printf("%s", ippErrorString(cupsLastError()));
 	printf(" %d\n",jobID);
 }
 
