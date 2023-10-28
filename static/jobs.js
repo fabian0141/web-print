@@ -24,36 +24,39 @@ function getAllJobs() {
                 var row = document.getElementById("jobsTable").insertRow(-1);
                 var cell = row.insertCell(0);
                 cell.innerHTML = name;
-                cell = row.insertCell(1);
-                cell.innerHTML = date;
-                cell = row.insertCell(2);
-                var cell3 = row.insertCell(3);
-                cell3.innerHTML = '<button class="w3-button w3-brown w3-round" onclick="cancelPrintJob(' + job + ', \'' + printer + '\')">Abbrechen</button>';
+                var cell2 = row.insertCell(1);
+                cell2.innerHTML = date;
+                var cell3 = row.insertCell(2);
+                var cell4 = row.insertCell(3);
+                cell4.innerHTML = '<button class="w3-button w3-brown w3-round" onclick="cancelPrintJob(' + job + ', \'' + printer + '\')">Abbrechen</button>';
 
                 switch (state) {
                     case 3:
-                        cell.innerHTML = "Der Druck ist in der Warteschlange";
+                        cell3.innerHTML = "Der Druck ist in der Warteschlange";
                         break;
                     case 4:
-                        cell.innerHTML = "Der Druck wurde angehalten";
+                        cell3.innerHTML = "Der Druck wurde angehalten";
                         break;
                     case 5:
-                        cell.innerHTML = "Das Dokument wird gedruckt";
+                        cell3.innerHTML = "Das Dokument wird gedruckt";
                         break;
                     case 6:
-                        cell.innerHTML = "Der Druck wurde gestoppt";
+                        cell3.innerHTML = "Der Druck wurde gestoppt";
                         break;
                     case 7:
-                        cell.innerHTML = "Der Druck wurde von dir abgebrochen";
+                        cell3.innerHTML = "Der Druck wurde von dir abgebrochen";
                         break;
                     case 8:
-                        cell.innerHTML = "Der Druck wurde vom Drucker abgebrochen";
+                        cell3.innerHTML = "Der Druck wurde vom Drucker abgebrochen";
                         break;
                     case 9:
-                        cell.innerHTML = "Das Dokument wurde gedruckt";
+                        cell3.innerHTML = "Das Dokument wurde gedruckt";
                         break;
                     default:
-                        cell.innerHTML = "Unbekannt";
+                        cell.innerHTML = "-";
+                        cell.innerHTML = "-";
+                        cell3.innerHTML = "Unbekannter Fehler. Versuch es nochmal!";
+                        cell4.innerHTML = "";
                         console.log(state);
                 }
                 if (state == 3 || state == 5) {
@@ -131,7 +134,7 @@ function getPrintInfo() {
                             document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Das Dokument wurde gedruckt";
                             break;
                         default:
-                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Unbekannt";
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Unbekannter Fehler. Versuch es nochmal!";
                             console.log(state);
                     }
                 } else {

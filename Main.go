@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -136,7 +137,7 @@ func showPrintPage(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_token")
 	var session *Session
 	if err == nil {
-		fmt.Println(err, cookie)
+		log.Println(err, cookie)
 		session, _ = getSession(cookie.Value)
 	}
 
@@ -172,7 +173,7 @@ func showJobsPage(w http.ResponseWriter, r *http.Request) {
 
 //Get document and save locally then execute printcli with all print settings
 func print(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Printing Document...\n")
+	log.Printf("Printing Document...\n")
 
 	cookie, err := r.Cookie("session_token")
 	var session *Session
@@ -180,7 +181,7 @@ func print(w http.ResponseWriter, r *http.Request) {
 		session, _ = getSession(cookie.Value)
 	}
 	if session == nil {
-		fmt.Println(sessions)
+		log.Println(sessions)
 		w.WriteHeader(403)
 		return
 	}
@@ -230,9 +231,12 @@ func print(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	buf.Reset()
-	fmt.Printf("Done!")
+	log.Printf("Done!")
+	stat, _ := f.Stat()
+	path, _ := filepath.Abs(name)
+	log.Printf("Size: %d; Mode: %x; Sys: %x; Path: %s", stat.Size(), stat.Mode(), stat.Sys(), path)
 
-	fmt.Printf("%s %s %s %s %s %s %s\n", r.FormValue("page numbers"), r.FormValue("copy number"), r.FormValue("color"), r.FormValue("sides"),
+	log.Printf("%s %s %s %s %s %s %s\n", r.FormValue("page numbers"), r.FormValue("copy number"), r.FormValue("color"), r.FormValue("sides"),
 		r.FormValue("res"), r.FormValue("pages per sheet"), r.FormValue("scale"))
 
 	var pageSelection = "All"
@@ -249,7 +253,7 @@ func print(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Print(string(info))
+	log.Print(string(info))
 
 	err = os.Remove(name)
 	checkError(err)
@@ -273,11 +277,11 @@ func print(w http.ResponseWriter, r *http.Request) {
 		session.PrintJobs[r.FormValue("printers")] = append(session.PrintJobs[r.FormValue("printers")], jobID)
 	}
 	checkCancelation(session, r.FormValue("printers"), jobID)
-	http.Redirect(w, r, "/jobs", http.StatusSeeOther)
+	http.Redirect(w, r, "/jobs", http.StatusAccepted)
 }
 
 func infoPrints(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Info of Prints...\n")
+	log.Printf("Info of Prints...\n")
 
 	var printJobs []PrintingJobs
 
@@ -306,18 +310,18 @@ func infoPrints(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprint(w, string(infos))
-	fmt.Print(string(infos))
+	log.Print(string(infos))
 }
 
 func infoAllPrints(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Info of all Prints...\n")
+	log.Printf("Info of all Prints...\n")
 
 	cookie, err := r.Cookie("session_token")
-	fmt.Printf("%s %s\n", cookie, err)
-	fmt.Println(sessions)
+	log.Printf("%s %s\n", cookie, err)
+	log.Println(sessions)
 	if err == nil {
 		session, e := getSession(cookie.Value)
-		fmt.Printf("%s %d\n", session.Session, e)
+		log.Printf("%s %d\n", session.Session, e)
 		if e != -1 {
 			length := len(session.PrintJobs)
 			printerArgs := make([]string, length*2+2)
@@ -331,7 +335,7 @@ func infoAllPrints(w http.ResponseWriter, r *http.Request) {
 				printerArgs[i+1] = re.ReplaceAllString(string(s), "")
 				i += 2
 			}
-			fmt.Println(printerArgs)
+			log.Println(printerArgs)
 			cmd := exec.Command("./cupscli", printerArgs...)
 			infos, err := cmd.Output()
 			if checkError(err) {
@@ -340,7 +344,7 @@ func infoAllPrints(w http.ResponseWriter, r *http.Request) {
 			}
 
 			fmt.Fprint(w, string(infos))
-			fmt.Println("Output: " + string(infos))
+			log.Println("Output: " + string(infos))
 			return
 		}
 	}
@@ -348,7 +352,7 @@ func infoAllPrints(w http.ResponseWriter, r *http.Request) {
 }
 
 func cancelPrint(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Canceling Print...\n")
+	log.Printf("Canceling Print...\n")
 
 	cookie, err := r.Cookie("session_token")
 	if err == nil {
@@ -365,7 +369,7 @@ func cancelPrint(w http.ResponseWriter, r *http.Request) {
 			} else {
 				fmt.Fprintf(w, "Druckauftrag konnte nicht abgebrochen werden\n")
 			}
-			fmt.Print(string(infos))
+			log.Print(string(infos))
 			return
 		}
 	}
@@ -373,7 +377,7 @@ func cancelPrint(w http.ResponseWriter, r *http.Request) {
 }
 
 func cancelCurrentPrint(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Canceling Print...\n")
+	log.Printf("Canceling Print...\n")
 
 	cookie, err := r.Cookie("session_token")
 	if err == nil {
@@ -395,7 +399,7 @@ func cancelCurrentPrint(w http.ResponseWriter, r *http.Request) {
 			} else {
 				fmt.Fprintf(w, "Druckauftrag konnte nicht abgebrochen werden\n")
 			}
-			fmt.Print(string(infos))
+			log.Print(string(infos))
 			return
 		}
 	}
@@ -412,7 +416,7 @@ func getPrinterInformations(printerInfos string) {
 	if strings.HasPrefix(splittedInfos[lastIdx], "Printer Amount:") {
 		var err error
 		printerAmount, err = strconv.Atoi(splittedInfos[lastIdx][16:])
-		fmt.Println(printerAmount)
+		log.Println(printerAmount)
 		checkError(err)
 
 		printerNames = make([]string, printerAmount)
@@ -424,11 +428,11 @@ func getPrinterInformations(printerInfos string) {
 			if strings.HasPrefix(splittedInfos[i], "Printer:") {
 				printerIdx++
 				printerNames[printerIdx] = splittedInfos[i][9:]
-				fmt.Println(printerNames[printerIdx])
+				log.Println(printerNames[printerIdx])
 			} else if strings.HasPrefix(splittedInfos[i], "Printer-Flags:") {
 				flags, err := strconv.ParseUint(splittedInfos[i][15:], 10, 32)
 				printerFlags[printerIdx] = uint(flags)
-				fmt.Println(flags)
+				log.Println(flags)
 				checkError(err)
 			}
 		}
@@ -440,12 +444,13 @@ func gatherAllPrinterInformations() {
 	infos, err := cmd.Output()
 	checkError(err)
 
-	fmt.Print(string(infos))
+	log.Print(string(infos))
 	getPrinterInformations(string(infos[:]))
 }
 
 func main() {
 
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	gatherAllPrinterInformations()
 
 	setupRoutes()
@@ -460,7 +465,7 @@ func checkFatal(e error) {
 
 func checkError(e error) bool {
 	if e != nil {
-		fmt.Println(e.Error())
+		log.Println(e.Error())
 		return true
 	}
 	return false
@@ -508,7 +513,7 @@ func checkCancelation(session *Session, printers string, jobID string) {
 	defer lock.Unlock()
 	if (*session).Cancel {
 		infos, _ := cancelJob(printers, (*session).Username, (*session).Password, jobID)
-		fmt.Println(string(infos))
+		log.Println(string(infos))
 	}
 	(*session).SendJob = false
 	(*session).Cancel = false
