@@ -80,10 +80,10 @@ $('#inputFile').change( function(event) {
 // header on that server.
 
 // Loaded via <script> tag, create shortcut to access PDF.js exports.
-var pdfjsLib = window['pdfjs-dist/build/pdf'];
+var { pdfjsLib } = globalThis;
 
 // The workerSrc property shall be specified.
-pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.js';
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'static/pdf.worker.js';
 
 var pdfDoc = null,
 pageNum = 0,
@@ -108,6 +108,9 @@ async function renderPage(num) {
 
 	var page = await pdfDoc.getPage(num+1)
 	var viewport = page.getViewport({scale: scale});
+	console.log(viewport.height)
+	console.log(viewport.width)
+
 	if (viewport.height >= viewport.width) {
 		canvasView.width = 1190;
 		canvasView.height = 1683;

@@ -9,7 +9,7 @@
 
 <body id="background">
     <script src="static/jquery-3.6.0.js"></script>
-    <script src="//mozilla.github.io/pdf.js/build/pdf.js"></script>
+    <script src="static/pdf.js"></script>
 
     <form id="printForm" action="/print" enctype="multipart/form-data" method="post">
         <div>
@@ -58,8 +58,8 @@
 
 
                 <label>Farbwahl:</label><br>
-                <input type="radio" id="blackwhite" value="monochrome" name="color" checked><label for="blackwhite" id="blackwhitelabel" onclick="setBW(true)"> Schwarz/Weiß</label><br>
-                <input type="radio" id="colored" value="color"  name="color"><label for="colored" id="coloredlabel" onclick="setBW(false)"> Farblich</label><br><br>
+                <input type="radio" id="blackwhite" value="monochrome" name="color" checked><label for="blackwhite" id="blackwhitelabel" onclick="setBW(this, true)"> Schwarz/Weiß</label><br>
+                <input type="radio" id="colored" value="color"  name="color"><label for="colored" id="coloredlabel" onclick="setBW(this, false)"> Farblich</label><br><br>
 
                 <label>Seiten Art:</label><br>
                 <input type="radio" id="onesided" value="one-sided" name="sides" checked><label for="onesided"> Einseitig</label><br>

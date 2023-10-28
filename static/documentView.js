@@ -16,7 +16,10 @@ var maxSides = 0;
 var maxPages = 0;
 var pageScaling = 0;
 
-function setBW(bw) {
+function setBW(self, bw) {
+    if (!self.enabled || bw & isBW) {
+        return;
+    }
 	isBW = bw;
     makeAdjustedImage();
 }
@@ -95,14 +98,17 @@ function scalePage(imgData) {
     var offsetY = 0;
     
     if (pageScaling == 1) {
-        for (x = 0; x < tilesImage.width * 4; x += 4) {
+        var tilesWidth = tilesImage.width * 4; 
+        for (x = 0; x < tilesWidth; x += 4) {
             for (y = 0; y < tilesImage.height; y++) {
-                tilesImage.data[x + (y * tilesImage.width * 4)] = 255;
-                tilesImage.data[x + (y * tilesImage.width * 4) + 1] = 255;
-                tilesImage.data[x + (y * tilesImage.width * 4) + 2] = 255;
-                tilesImage.data[x + (y * tilesImage.width * 4) + 3] = 1;
+                var pos = x + (y * tilesImage.width * 4)
+                tilesImage.data[pos] = 255;
+                tilesImage.data[pos + 1] = 255;
+                tilesImage.data[pos + 2] = 255;
+                tilesImage.data[pos + 3] = 1;
             }
         }
+
         newWidth = Math.floor(newWidth * 0.95);
         newHeight = Math.floor(newHeight * 0.95);
         offsetX = Math.ceil(newWidth * 0.025);
@@ -231,11 +237,16 @@ async function combinePages(widthTiles, heightTiles, resizeFactor, changeOrienta
 }
 
 async function makeAdjustedImage() {
+    var start = Date.now();
+
     pageIdx = pagesToPrint[curSide * pagesPerSide];
 
     if (bufferedImages[pageIdx] == null) {
         await renderPage(pageIdx);
     }
+
+    var start1 = Date.now();
+
 
     isVertical = bufferedImages[pageIdx].height > bufferedImages[pageIdx].width;
 
@@ -265,9 +276,12 @@ async function makeAdjustedImage() {
     } else {
         imgData = scalePage(imgData);
     }
+    var start2 = Date.now();
+
 
     if (isBW) {
-        for (i = 0; i < imgData.data.length; i += 4) {
+        var imageWidth = imgData.data.length;
+        for (i = 0; i < imageWidth; i += 4) {
             let grayscale = 0.3 * imgData.data[i] + 0.6 * imgData.data[i + 1] + 0.1 * imgData.data[i + 2];
           
             imgData.data[i] = grayscale;
@@ -276,6 +290,9 @@ async function makeAdjustedImage() {
             imgData.data[i + 3] = 255;
         }
     }
+
+    var start3 = Date.now();
+
 
     if (isVertical && canvasView.width > canvasView.height) {
         var tmp = canvasView.width;
@@ -287,6 +304,12 @@ async function makeAdjustedImage() {
         canvasView.height = tmp;
     }
     ctxView.putImageData(imgData, 0, 0);
+    
+    alert((start1 - start) + "\n"
+         + (start2 - start1) + "\n"
+         + (start3 - start2) + "\n"
+         + (Date.now() - start3) + "\n"
+         + (window.performance.memory.usedJSHeapSize / 1000000.0));
 }
 
 class Vec3 {
