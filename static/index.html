@@ -4,17 +4,17 @@
     <link rel="stylesheet" href="static/stylesheet.css">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="static/fckprinters.png" type="image/x-icon">
+    <link rel="icon" href="static/media/fckprinters.png" type="image/x-icon">
 </head>
 
 <body id="background">
-    <script src="static/jquery-3.6.0.js"></script>
-    <script src="static/pdf.js"></script>
+    <script src="static/library/jquery-3.6.0.js"></script>
+    <script src="static/library/pdf.js"></script>
 
     <form id="printForm" action="/print" enctype="multipart/form-data" method="post">
         <div>
             <div id="preview">
-                <h1 id="title">PDF Online Printer <div id="infoview"> <img src="static/info_icon.svg" width="35px"/><br/>
+                <h1 id="title">PDF Online Printer <div id="infoview"> <img src="static/media/info_icon.svg" width="35px"/><br/>
                     <span id="displayinfo">Die Vorschau ist nur als Hilfe gedacht! Nicht alle Optionen werden visualisiert.</span></div></h1>
 
                 <div id="pdfArea">
@@ -51,15 +51,15 @@
 
                 <label for="pages">Seiten Nummern:</label><br>
                 <input type="text" id="pages" name="page numbers" pattern="|([1-9][0-9]*(-[1-9][0-9]*){0,1}(,[1-9][0-9]*(-[1-9][0-9]*){0,1})*)"
-                title="Wähle einzelne Seiten durch ',' separiert aus oder mehrere Seiten mit '-' durch z.B.'1-3,5,7-8' um Die Seiten 1 bis 3, 5 und 7 bis 8 zu drucken" placeholder="1-3,5,7-8" onchange="pagesSelectionChanged()"><br><br>
+                title="Wähle einzelne Seiten durch ',' separiert aus oder mehrere Seiten mit '-' durch z.B.'1-3,5,7-8' um Die Seiten 1 bis 3, 5 und 7 bis 8 zu drucken" placeholder="1-3,5,7-8"><br><br>
 
                 <label for="copies">Anzahl an Kopien:</label><br>
                 <input type="number" id="copies" name="copy number" min="1" value="1"><br><br>
 
 
                 <label>Farbwahl:</label><br>
-                <input type="radio" id="blackwhite" value="monochrome" name="color" checked><label for="blackwhite" id="blackwhitelabel" onclick="setBW(this, true)"> Schwarz/Weiß</label><br>
-                <input type="radio" id="colored" value="color"  name="color"><label for="colored" id="coloredlabel" onclick="setBW(this, false)"> Farblich</label><br><br>
+                <input type="radio" id="blackwhite" value="monochrome" name="color" checked><label for="blackwhite" id="blackwhitelabel"> Schwarz/Weiß</label><br>
+                <input type="radio" id="colored" value="color"  name="color"><label for="colored" id="coloredlabel"> Farblich</label><br><br>
 
                 <label>Seiten Art:</label><br>
                 <input type="radio" id="onesided" value="one-sided" name="sides" checked><label for="onesided"> Einseitig</label><br>
@@ -73,7 +73,7 @@
                 <input type="radio" id="revlandscape" value="5" name="orientation"><label for="revlandscape"> Umgekehrt Horizontal</label><br><br>-->
 
 
-                <button id="moreOptions" type="button" onclick="showMoreOptions()">Mehr Optionen</button>
+                <button id="moreOptions" type="button">Mehr Optionen</button>
 
                 <div id="additionalOptions">
                     <label>Auflösung:</label><br>
@@ -82,7 +82,7 @@
                     <input type="radio" id="low-res" value="3" name="res"><label for="low-res"> Niedrige Auflösung</label><br><br>
 
                     <label>Seiten pro Blatt:</label><br>
-                    <select id="pagespersheet" name="pages per sheet" onchange="setTiles()">
+                    <select id="pagespersheet" name="pages per sheet">
                         <option selected>1</option>
                         <option>2</option>
                         <option>4</option>
@@ -92,11 +92,11 @@
                     </select><br><br>
 
                     <label>Skalieren:</label><br>
-                    <input type="radio" id="no-scale" value="none" name="scale" checked><label for="no-scale" onclick="setPageScaling(0)"> Nicht Skalieren</label><br>
-                    <input type="radio" id="fit-scale" value="fit" name="scale"><label for="fit-scale" onclick="setPageScaling(1)"> Druckbarer Bereich</label><br>
-                    <input type="radio" id="fill-scale" value="fill" name="scale"><label for="fill-scale" onclick="setPageScaling(2)"> Komplette Seite</label><br><br>
+                    <input type="radio" id="no-scale" value="none" name="scale" checked><label for="no-scale"> Nicht Skalieren</label><br>
+                    <input type="radio" id="fit-scale" value="fit" name="scale"><label for="fit-scale"> Druckbarer Bereich</label><br>
+                    <input type="radio" id="fill-scale" value="fill" name="scale"><label for="fill-scale"> Komplette Seite</label><br><br>
 
-                    <button id="lessOptions" type="button" onclick="showLessOptions()">Weniger Optionen</button>
+                    <button id="lessOptions" type="button">Weniger Optionen</button>
                 </div>
                 <br/>
                 <input class="w3-button w3-brown w3-round" type="submit" value="Drucken">
@@ -107,11 +107,11 @@
     <div id="fullgraybackground">
         <div style="position: relative;margin: auto;">
             <div id="loader">
-                <img id="test" src="static/loading.gif" width="80px"/><br id="breakLoader" />
+                <img id="test" src="static/media/loading.gif" width="80px"/><br id="breakLoader" />
                 <span id="printingMessage" style="text-align: center;">Auftrag wird an den Drucker gesendet.</span>
             </div>
             <br/>
-            <button id="cancelCurPrintBut" class="w3-button w3-brown w3-round" style="display: block; margin: 0 auto; font-size: 1.5em;" onclick="cancelCurPrint()">Abbrechen</button>
+            <button id="cancelCurPrintBut" class="w3-button w3-brown w3-round" style="display: block; margin: 0 auto; font-size: 1.5em;">Abbrechen</button>
         </div>
     </div>
 
@@ -119,7 +119,7 @@
     <div id="dragNdropFile">
         <div>
             <div style="text-align: center">
-                <img src="static/upload_icon.svg" width="200px">
+                <img src="static/media/upload_icon.svg" width="200px">
             </div>
             <h1 style="font-size: 50px"><b>Füge Dokument hinzu</b></h1>
         </div>
@@ -130,6 +130,4 @@
 </body>
 </html>
 
-<script src="static/controller.js"></script>
-<script src="static/documentView.js"></script>
-
+<script src="static/controller.js" type="module"></script>
