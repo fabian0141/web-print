@@ -23,28 +23,6 @@ $('#inputFile').change( function(event) {
 	preview.loadPdf(url);
  });
 
-/**
- * Displays previous page.
- */
-function onPrevPage() {
- 	if (pageNum <= 0) {
- 		return;
- 	}
- 	pageNum--;
- 	queueRenderPage(pagesToPrint[pageNum]);
-}
-
-/**
- * Displays next page.
- */
-function onNextPage() {
- 	if (pageNum >= pagesToPrint.length - 1) {
- 		return;
- 	}
- 	pageNum++;
- 	queueRenderPage(pagesToPrint[pageNum]);
-}
-
 var dropArea = document.getElementById('background');
 
  ;['dragenter'].forEach(eventName => {
@@ -142,7 +120,6 @@ function pagesSelectionChanged() {
 }
 
 function setBW(self, bw) {
-	console.log(self.disabled, bw)
     if (self.disabled || bw & preview.isBW) {
         return;
     }
@@ -171,7 +148,7 @@ function showLessOptions() {
 }
 
 function setTiles() {
-    preview.pagesPerSide = parseInt($('#pagespersheet').val());
+    preview.setPagesPerSide(parseInt($('#pagespersheet').val()));
 
     preview.curSide = 0;
     preview.maxSides = Math.ceil(preview.maxPages / preview.pagesPerSide);
@@ -181,7 +158,7 @@ function setTiles() {
 }
 
 function setPageScaling(ps) {
-	preview.pageScaling = ps;
+	preview.setPageScaling(ps);
     preview.makeAdjustedImage();
 }
 
