@@ -1,5 +1,4 @@
 import { PdfHandle } from "./pdfHandle.js"
-import { scalePage, combinePages } from "./modifyImage.js";
 import { initBuffers, initPositionBuffer, initTextureBuffer } from "./previewBuffer.js";
 import { Shader } from "./previewShader.js";
 import { createImageTexture, drawScene } from "./previewScene.js";
