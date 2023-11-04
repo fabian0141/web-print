@@ -109,6 +109,7 @@ void printDocument(cups_dest_t *dest, char** options)
 		ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "sides", NULL, options[5]);
 		ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "print-quality", atoi(options[6]));
 		ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "number-up", atoi(options[7]));
+		ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_KEYWORD, "media", NULL, "iso_a4_210x297mm");
 		ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_KEYWORD, "print-scaling", NULL, options[8]);
 
 		ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_MIMETYPE, "document-format", NULL, filetype);
@@ -149,6 +150,7 @@ void printDocument(cups_dest_t *dest, char** options)
 	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_KEYWORD, "sides", NULL, options[5]);
 	ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "print-quality", atoi(options[6]));
 	ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "number-up", atoi(options[7]));
+	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_KEYWORD, "media", NULL, "iso_a4_210x297mm");
 	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_KEYWORD, "print-scaling", NULL, options[8]);
 
 
@@ -188,7 +190,7 @@ void requestJobInfo(cups_dest_t *dest, int jobID, char* printer) {
         } else {
             name = "";
         }
-        char dateStr[16];
+        char dateStr[17];
         if ((attr = ippFindAttribute(response, "date-time-at-creation", IPP_TAG_DATE)) != NULL)
         {
             ipp_uchar_t* date = (ipp_uchar_t*)ippGetDate(attr, 0);
@@ -336,7 +338,7 @@ int main(int argc, char **argv)
 			printDocument(printerDest, options);
 
 		} else if (strcmp(argv[1], "-info") == 0) { //get print job info with args length, ['printer name', ['job id']]
-
+			
 			int length = atoi(argv[2]);
 			for (int i = 0; i < length; i++)
 			{

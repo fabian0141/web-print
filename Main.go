@@ -47,7 +47,7 @@ type Session struct {
 
 var printerAmount int
 var printerNames []string
-var printerFlags []uint //saves options as flags see CUPS source code for more informations, relevant ones are above
+var printerFlags []uint //saves options as flags see CUPS source code for more informations, relevant ones are above. Look in cups.h
 
 var sessions = make([]*Session, 0)
 var lock sync.Mutex
@@ -321,8 +321,9 @@ func infoAllPrints(w http.ResponseWriter, r *http.Request) {
 	log.Println(sessions)
 	if err == nil {
 		session, e := getSession(cookie.Value)
-		log.Printf("%s %d\n", session.Session, e)
 		if e != -1 {
+			log.Printf("%s %d\n", session.Session, e)
+
 			length := len(session.PrintJobs)
 			printerArgs := make([]string, length*2+2)
 			printerArgs[0] = "-info"
@@ -338,13 +339,14 @@ func infoAllPrints(w http.ResponseWriter, r *http.Request) {
 			log.Println(printerArgs)
 			cmd := exec.Command("./cupscli", printerArgs...)
 			infos, err := cmd.Output()
+			log.Println("Output: " + string(infos))
+
 			if checkError(err) {
 				w.WriteHeader(400)
 				return
 			}
 
 			fmt.Fprint(w, string(infos))
-			log.Println("Output: " + string(infos))
 			return
 		}
 	}
