@@ -21,10 +21,10 @@ class Preview  {
         this.isVertical = true;
         this.pagesPerSide = 1;
         this.pageScaling = 2;
+        this.waitForRender = false;
 
         this.canvasView = document.getElementById('the-canvas');
         this.gl = this.canvasView.getContext('webgl');
-
         this.initGL();
     }
 
@@ -64,6 +64,7 @@ class Preview  {
         var maxPagesPerSide = Math.min(this.maxPages - pageIdx, this.pagesPerSide);
 
         var images = new Array(maxPagesPerSide);
+        this.waitForRender = true;
         for (let i = 0; i < maxPagesPerSide; i++) {
             var imgData = await this.pdfHandle.getPage(pageIdx + i);
 
@@ -76,6 +77,8 @@ class Preview  {
             }
             images[i] = createImageTexture(this.gl, imgData);
         }
+        this.waitForRender = false;
+
         var start1 = Date.now();
 
         this.canvasView.width = this.pageSize.x;
@@ -89,15 +92,26 @@ class Preview  {
         for (let i = 0; i < maxPagesPerSide; i++) {
             drawScene(this.gl, this.prepProgramInfo, images[i], this.prepBuffers, this.isBW, this.pageScaling, this.pagesPerSide, i);
         }
+
+        for (let i = 0; i < maxPagesPerSide; i++) {
+            this.gl.deleteTexture(images[i]);
+        }
+
     }
 
     nextSide() {
+        if (this.waitForRender) {
+            return
+        }
         this.curSide = mod(this.curSide + 1, this.maxSides);
         document.getElementById('pageNum').textContent = this.curSide + 1;
         this.makeAdjustedImage();
     }
 
     prevSide() {
+        if (this.waitForRender) {
+            return
+        }
         this.curSide = mod(this.curSide - 1, this.maxSides);
         document.getElementById('pageNum').textContent = this.curSide + 1;
         this.makeAdjustedImage();

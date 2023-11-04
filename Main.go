@@ -171,7 +171,7 @@ func showJobsPage(w http.ResponseWriter, r *http.Request) {
 	templates.Lookup("doc").Execute(w, context) //Add Printer List to choose from
 }
 
-//Get document and save locally then execute printcli with all print settings
+// Get document and save locally then execute printcli with all print settings
 func print(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Printing Document...\n")
 
@@ -277,7 +277,7 @@ func print(w http.ResponseWriter, r *http.Request) {
 		session.PrintJobs[r.FormValue("printers")] = append(session.PrintJobs[r.FormValue("printers")], jobID)
 	}
 	checkCancelation(session, r.FormValue("printers"), jobID)
-	http.Redirect(w, r, "/jobs", http.StatusAccepted)
+	http.Redirect(w, r, "/jobs", http.StatusSeeOther)
 }
 
 func infoPrints(w http.ResponseWriter, r *http.Request) {
@@ -406,8 +406,8 @@ func cancelCurrentPrint(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(440)
 }
 
-//Get printer amount of last line and save names and available printer options in
-//printerNames and printerFlags
+// Get printer amount of last line and save names and available printer options in
+// printerNames and printerFlags
 func getPrinterInformations(printerInfos string) {
 
 	splittedInfos := strings.Split(printerInfos, "\n")

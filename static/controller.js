@@ -100,7 +100,7 @@ document.getElementById('cancelCurPrintBut').addEventListener('click', cancelCur
 document.getElementById('moreOptions').addEventListener('click', showMoreOptions);
 document.getElementById('lessOptions').addEventListener('click', showLessOptions);
 
-document.getElementById('pagespersheet').addEventListener('click', setTiles);
+document.getElementById('pagespersheet').addEventListener('change', setTiles);
 document.getElementById('no-scale').addEventListener('click', () => { setPageScaling(0) });
 document.getElementById('fit-scale').addEventListener('click', () => { setPageScaling(1) });
 document.getElementById('fill-scale').addEventListener('click', () => { setPageScaling(2) });

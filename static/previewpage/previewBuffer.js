@@ -48,7 +48,7 @@ function initIndexBuffer(gl) {
     return indexBuffer;
 }
 
-function initPositionBuffer(gl, oldPositionBuffer, isVertical, pagesPerSide, pageScaling) {
+function initPositionBuffer(gl, positionBuffer, isVertical, pagesPerSide, pageScaling) {
     // Create a buffer for the square's positions.
     var isVertical = true;
     var rotate = false;
@@ -123,26 +123,13 @@ function initPositionBuffer(gl, oldPositionBuffer, isVertical, pagesPerSide, pag
         }
     }
 
-    var positionBuffer = new Array(pagesPerSide);
-    if (oldPositionBuffer == []) {
-        for (let i = 0; i < pagesPerSide; i++) {
+    for (let i = 0; i < pagesPerSide; i++) {
+        if (positionBuffer[i] == null) {
             positionBuffer[i] = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer[i]);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions[i]), gl.STATIC_DRAW);
         }
-
-    } else {
-        for (let i = 0; i < oldPositionBuffer.length; i++) {
-            gl.deleteBuffer(oldPositionBuffer[i]);
-        }
-
-        for (let i = 0; i < pagesPerSide; i++) {
-            positionBuffer[i] = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer[i]);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions[i]), gl.STATIC_DRAW);
-        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer[i]);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions[i]), gl.STATIC_DRAW);
     }
-
     return positionBuffer;
 }
 
@@ -150,7 +137,7 @@ function initBuffers(gl) {
     const indexBuffer = initIndexBuffer(gl);
 
     return {
-        position: new Array(),
+        position: (new Array(16)).fill(null),
         textureCoord: null,
         indices: indexBuffer,
     };

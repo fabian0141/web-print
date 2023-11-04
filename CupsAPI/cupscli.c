@@ -95,14 +95,9 @@ void printDocument(cups_dest_t *dest, char** options)
 	const char *resource = getResourceFromURI(printerUri); 
 	http_t *http;
 
-	printf("1 %s\n", cupsLastErrorString());
-
 	while (jobID == 0 && tries-- > 0)
 	{
 		http = httpConnect2("fry", 631, NULL, AF_UNSPEC, HTTP_ENCRYPTION_IF_REQUESTED, 1, 30000, NULL);
-
-		printf("2 %s\n", cupsLastErrorString());
-
 
 		request = ippNewRequest(IPP_OP_CREATE_JOB);
 		ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_URI, "printer-uri", NULL, printerUri);
@@ -116,18 +111,10 @@ void printDocument(cups_dest_t *dest, char** options)
 		ippAddInteger(request, IPP_TAG_OPERATION, IPP_TAG_ENUM, "number-up", atoi(options[7]));
 		ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_KEYWORD, "print-scaling", NULL, options[8]);
 
-		printf("3 %s\n", cupsLastErrorString());
-
-
 		ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_MIMETYPE, "document-format", NULL, filetype);
 		ippAddBoolean(request, IPP_TAG_OPERATION, "last-document", 1);
-		printf("3.1 %s\n", cupsLastErrorString());
 
 		response = cupsDoFileRequest(http, request, resource, options[0]);
-		printf("%s %d\n", ippErrorString(cupsLastError()), cupsLastError());
-
-		printf("3.2 %s\n", cupsLastErrorString());
-
 
 		jobID = ippGetInteger(ippFindAttribute(response, "job-id", IPP_TAG_INTEGER), 0);
 		if (jobID == 0) {
