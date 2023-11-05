@@ -9,9 +9,9 @@ RUN apt update -y && apt install -y libcups2-dev
 COPY . /go/src/
 
 # Build cupscli to artefact /go/bin/cupscli
-RUN gcc -static -O3 -o /go/bin/cupscli CupsAPI/cupscli.c -lcups
+RUN gcc -O3 -o /go/bin/cupscli CupsAPI/cupscli.c -lcups
 # Build web-print to artefact /go/src/
-RUN go build -v -o /go/bin/web-print
+RUN CGO_ENABLED=0 go build -v -o /go/bin/web-print
 
 # ------------------------------------------------------
 
