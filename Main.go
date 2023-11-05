@@ -67,6 +67,7 @@ func setupRoutes() {
 }
 
 func showPrintPage(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Show Print Page...\n")
 
 	pageContent, err := os.ReadFile("./static/index.html")
 	checkFatal(err)
@@ -158,6 +159,7 @@ func showPrintPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func showJobsPage(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Show Job Page...\n")
 
 	pageContent, err := os.ReadFile("./static/jobs/index.html")
 	checkFatal(err)
@@ -411,14 +413,12 @@ func cancelCurrentPrint(w http.ResponseWriter, r *http.Request) {
 // Get printer amount of last line and save names and available printer options in
 // printerNames and printerFlags
 func getPrinterInformations(printerInfos string) {
-
 	splittedInfos := strings.Split(printerInfos, "\n")
 	lastIdx := len(splittedInfos) - 2
 
 	if strings.HasPrefix(splittedInfos[lastIdx], "Printer Amount:") {
 		var err error
 		printerAmount, err = strconv.Atoi(splittedInfos[lastIdx][16:])
-		log.Println(printerAmount)
 		checkError(err)
 
 		printerNames = make([]string, printerAmount)
@@ -442,26 +442,32 @@ func getPrinterInformations(printerInfos string) {
 }
 
 func gatherAllPrinterInformations() {
+	log.Printf("Get Printer Informations...\n")
+
 	cmd := exec.Command("./cupscli", "-infos")
 	infos, err := cmd.Output()
 	checkError(err)
-
-	log.Print(string(infos))
 	getPrinterInformations(string(infos[:]))
 }
 
 func main() {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered from panic:", r)
+		}
+	}()
 
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	gatherAllPrinterInformations()
 
 	setupRoutes()
 	checkFatal(http.ListenAndServe(":36657", nil))
+	log.Printf("Stopping Server Gracefully...\n")
 }
 
 func checkFatal(e error) {
 	if e != nil {
-		log.Fatal(e)
+		log.Fatal("Crash", e)
 	}
 }
 

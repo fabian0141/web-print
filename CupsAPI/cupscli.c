@@ -15,6 +15,8 @@ typedef struct
   	char **printersToIgnore;
 } PrinterInfo;
 
+const int MAX_TRIES = 3;
+
 int getPrinterInfos(PrinterInfo *printerInfo, unsigned flags, cups_dest_t *dest)
 {
 	for (int i = 0; i < printerInfo->printersToIgnoreAmount; ++i)
@@ -261,13 +263,21 @@ typedef struct
 {
 	const char* user;
   	const char* password;
+	int tries;
+
 } User;
 
 
 const char *getPassword(const char *prompt, http_t *http, const char *method, const char *resource, User *userData) 
 {
+	if (userData->tries <= 0) {
+		printf("No more Authentication tries.\n");
+		return NULL;
+	}
+	userData->tries = userData->tries - 1;
 
-	printf("Checking Authentication %s\n", userData->user);
+
+	printf("Checking Authentication %s, tries: %d\n", userData->user, userData->tries);
 	cupsSetUser(userData->user);
 
 	return userData->password;
@@ -326,7 +336,7 @@ int main(int argc, char **argv)
 		//Send print job with args 	'printer name', 'title', 'file location', 'user name', 'password', 'page selection', 'amount of copies',
 		//							'color', 'one/two-sided', 'quality', 'pages per sheet', 'scale' 	
 		} else if (strcmp(argv[1], "-print") == 0) {
-			User userData = {argv[5], argv[6]};
+			User userData = {argv[5], argv[6], MAX_TRIES};
 			cupsSetPasswordCB2((cups_password_cb2_t)getPassword, &userData);		
 
 			PrinterDest dests = {0, NULL};
@@ -349,7 +359,7 @@ int main(int argc, char **argv)
 				infoPrint(printerDest, length, argv[4 + 2 * i], argv[3 + 2 * i]);
 			}
 		} else if (strcmp(argv[1], "-cancel") == 0) { //cancel print job with args 'printer name', 'user name', 'password', 'job id'
-			User userData = {argv[3], argv[4]};
+			User userData = {argv[3], argv[4], MAX_TRIES};
 			cupsSetPasswordCB2((cups_password_cb2_t)getPassword, &userData);		
 
 			PrinterDest dests = {0, NULL};
