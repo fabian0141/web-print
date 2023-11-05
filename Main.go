@@ -414,7 +414,11 @@ func cancelCurrentPrint(w http.ResponseWriter, r *http.Request) {
 // printerNames and printerFlags
 func getPrinterInformations(printerInfos string) {
 	splittedInfos := strings.Split(printerInfos, "\n")
+	log.Printf("All Printer Info: %s\n", printerInfos)
 	lastIdx := len(splittedInfos) - 2
+	if lastIdx <= 0 {
+		log.Fatal("Couldnt find any Printers")
+	}
 
 	if strings.HasPrefix(splittedInfos[lastIdx], "Printer Amount:") {
 		var err error
@@ -462,12 +466,13 @@ func main() {
 
 	setupRoutes()
 	checkFatal(http.ListenAndServe(":36657", nil))
+	//checkFatal(http.ListenAndServeTLS(":36657", "./../Certificates/public.key", "./../Certificates/private.key", nil))
 	log.Printf("Stopping Server Gracefully...\n")
 }
 
 func checkFatal(e error) {
 	if e != nil {
-		log.Fatal("Crash", e)
+		log.Fatal("Crash: ", e)
 	}
 }
 
