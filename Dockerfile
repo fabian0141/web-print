@@ -1,5 +1,5 @@
 # Minimal base image to compile cupscli and the main app
-FROM golang AS compile
+FROM golang:buster AS compile
 WORKDIR /go/src/
 
 # Install build dependencies
