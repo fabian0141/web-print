@@ -17,6 +17,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/google/uuid"
 )
 
@@ -455,30 +457,35 @@ func gatherAllPrinterInformations() {
 }
 
 func main() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("Recovered from panic:", r)
+			err := errors.Errorf("Panic occurred: %v", r)
+			log.Printf("%+v\n", err)
 		}
 	}()
 
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	gatherAllPrinterInformations()
 
 	setupRoutes()
-	checkFatal(http.ListenAndServe(":36657", nil))
-	//checkFatal(http.ListenAndServeTLS(":36657", "./../Certificates/public.key", "./../Certificates/private.key", nil))
+	//checkFatal(http.ListenAndServe(":36657", nil))
+	checkFatal(http.ListenAndServeTLS(":36657", "./certs/cloud.hfk.whka.de.cert", "./certs/cloud.hfk.whka.de.key", nil))
 	log.Printf("Stopping Server Gracefully...\n")
 }
 
 func checkFatal(e error) {
 	if e != nil {
-		log.Fatal("Crash: ", e)
+		wrappedErr := errors.Wrap(e, "An error occurred in an imported library")
+		log.Printf("Crash: %+v\n", wrappedErr)
+		os.Exit(-1)
 	}
 }
 
 func checkError(e error) bool {
 	if e != nil {
-		log.Println(e.Error())
+		wrappedErr := errors.Wrap(e, "An error occurred in an imported library")
+		log.Printf("%+v\n", wrappedErr)
 		return true
 	}
 	return false
