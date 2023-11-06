@@ -9,3 +9,4 @@ services:
       - ADMIN_PASSWORD=cupsadmin
     volumes:
       - ./cups/:/etc/cups/
+      - ./certs/:/app/certs/
