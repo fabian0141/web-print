@@ -32,5 +32,5 @@ COPY static/ ./static/
 # Run the app
 EXPOSE 8080
 EXPOSE 631
-CMD cupsd && ./web-print 
+CMD echo "Container started at $(date)" && cupsd && ./web-print 
 
