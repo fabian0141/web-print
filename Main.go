@@ -17,10 +17,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
-
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
+
+/**
+	scale preview
+	test drivers
+	add image option instead of pdf
+	test image printing
+	language EN/DE
+	pricing
+	keep options between visits
+**/
 
 const (
 	CUPS_PRINTER_BW     = 0x0004 /* Can do B&W printing */
@@ -45,6 +54,15 @@ type Session struct {
 	Expire    time.Time
 	SendJob   bool
 	Cancel    bool
+}
+
+type PrintJob struct {
+	Title   string
+	Printer string
+	Copies  int
+	User    string
+	Price   int
+	Pages   int
 }
 
 var printerAmount int
@@ -273,6 +291,21 @@ func print(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/jobs", http.StatusSeeOther)
 		return
 	}
+	/*
+		price := 0;
+		if (r.FormValue("color") == )
+
+		data := PrintJob{Title: name, Printer: r.FormValue("printers"), Copies: r.FormValue("copy number"), User: r.FormValue("username"), Price: , Pages: }
+		data.Title = name
+
+		data.Set("surname", "bar")
+
+		client := &http.Client{}
+		intraRequest, _ := http.NewRequest(http.MethodPost, "localhost", ) // URL-encoded payload
+		intraRequest.Header.Add("Content-Type", "application/json")
+
+		resp, _ := client.Do(r)
+		fmt.Println(resp.Status)*/
 
 	if jobs, ok := session.PrintJobs[r.FormValue("printers")]; ok {
 		jobs = append(jobs, jobID)
@@ -469,8 +502,8 @@ func main() {
 	gatherAllPrinterInformations()
 
 	setupRoutes()
-	//checkFatal(http.ListenAndServe(":36657", nil))
-	checkFatal(http.ListenAndServeTLS(":36657", "./certs/cloud.hfk.whka.de.cert", "./certs/cloud.hfk.whka.de.key", nil))
+	checkFatal(http.ListenAndServe(":36657", nil))
+	//checkFatal(http.ListenAndServeTLS(":36657", "./certs/cloud.hfk.whka.de.cert", "./certs/cloud.hfk.whka.de.key", nil))
 	log.Printf("Stopping Server Gracefully...\n")
 }
 

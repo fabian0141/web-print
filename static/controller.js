@@ -1,5 +1,6 @@
 import { SidePanel } from "./previewpage/sidePanel.js";
 import { Preview } from "./previewpage/preview.js"
+import { Language } from "./lang.js";
 
 document.getElementById('pageNum').textContent = 0;
 document.getElementById('pageCount').textContent = 0;
@@ -10,6 +11,7 @@ var jobID = -1;
 
 var sidePanel = new SidePanel();
 var preview = new Preview();
+var lang = new Language();
 
 $("#printForm").on("submit", function (e) {
 	document.getElementById('cancelCurPrintBut').style.display = "block";
@@ -116,7 +118,7 @@ function pagesSelectionChanged() {
     preview.maxSides = Math.ceil(preview.maxPages / preview.pagesPerSide);
 	sidePanel.updatePageSelector(preview.maxSides)
 
-	preview.makeAdjustedImage();
+	preview.makeAdjustedImage(true);
 }
 
 function setBW(self, bw) {
@@ -124,7 +126,7 @@ function setBW(self, bw) {
         return;
     }
 	preview.isBW = bw;
-    preview.makeAdjustedImage();
+    preview.makeAdjustedImage(true);
 }
 
 function cancelCurPrint() {
@@ -154,11 +156,49 @@ function setTiles() {
     preview.maxSides = Math.ceil(preview.maxPages / preview.pagesPerSide);
     document.getElementById('pageCount').textContent = preview.maxSides;
     document.getElementById('pageNum').textContent = 1;
-    preview.makeAdjustedImage();
+    preview.makeAdjustedImage(true);
 }
 
 function setPageScaling(ps) {
 	preview.setPageScaling(ps);
-    preview.makeAdjustedImage();
+    preview.makeAdjustedImage(true);
 }
 
+function printPDF() {
+	let formData = new FormData();
+	formData.append("filename", $("#inputFile").val(), filename);
+	formData.append("username", $("#user").val());
+	formData.append("password", $("#password").val());
+	formData.append("printers", $("input[name='printers']:selected").val());
+	formData.append("page numbers", $("#pages").val());
+	formData.append("copy number", $("#copies").val());
+	formData.append("color", $("input[name='color']:selected").val());
+	formData.append("sides", $("input[name='sides']:selected").val());
+	formData.append("res", $("input[name='res']:selected").val());
+	formData.append("pages per sheet", $("input[name='pages per sheet']:selected").val());
+	formData.append("scale", $("input[name='scale']:selected").val());
+
+	$.ajax({url: "/print-img", data: formData, processData: false, contentType: false, type: 'POST', success: function(data) {}});
+	document.getElementById('cancelCurPrintBut').style.display = "block";
+	document.getElementById("fullgraybackground").style.display = "flex";
+}
+
+function printImg() {
+	let formData = new FormData();
+	formData.append("username", $("#user").val());
+	formData.append("password", $("#password").val());
+	formData.append("printers", $("input[name='printers']:selected").val());
+	formData.append("page numbers", $("#pages").val());
+	formData.append("copy number", $("#copies").val());
+	formData.append("color", $("input[name='color']:selected").val());
+	formData.append("sides", $("input[name='sides']:selected").val());
+	formData.append("res", $("input[name='res']:selected").val());
+	formData.append("pages per sheet", $("input[name='pages per sheet']:selected").val());
+	formData.append("scale", $("input[name='scale']:selected").val());
+	formData.append("maxSides", preview.maxSides);
+
+	$.ajax({url: "/print-img", data: formData, processData: false, contentType: false, type: 'POST', success: function(data) { preview.sendImages(); }});
+	document.getElementById('cancelCurPrintBut').style.display = "block";
+	document.getElementById("fullgraybackground").style.display = "flex";
+	preview.sendImages();
+}

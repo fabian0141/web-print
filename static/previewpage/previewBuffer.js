@@ -8,8 +8,8 @@ function initTextureBuffer(gl, oldTextureCoordBuffer, size, pageScaling) {
             1.0, 0.0, 
             0.0, 0.0];
     } else {
-        var vertical = 842.0 / size.y;
-        var horizontal = 595.0 / size.x;
+        var vertical = 1684.0 / size.y;
+        var horizontal = 1190.0 / size.x;
     
         textureCoordinates = [
             0.0, 0.0 + vertical, 
@@ -133,14 +133,47 @@ function initPositionBuffer(gl, positionBuffer, isVertical, pagesPerSide, pageSc
     return positionBuffer;
 }
 
-function initBuffers(gl) {
+function initBuffers(gl, type) {
     const indexBuffer = initIndexBuffer(gl);
 
-    return {
-        position: (new Array(16)).fill(null),
-        textureCoord: null,
-        indices: indexBuffer,
-    };
+    switch (type) {
+        case 0:
+            return {
+                position: (new Array(16)).fill(null),
+                textureCoord: null,
+                indices: indexBuffer,
+            };
+        case 1:
+            const positionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                -1, -1,
+                 1, -1,
+                -1,  1,
+                 1, -1,
+                 1,  1,
+                -1,  1,
+            ]), gl.STATIC_DRAW);
+    
+            // Setup texture coordinates
+            const textureBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                0, 0,
+                1, 0,
+                0, 1,
+                1, 0,
+                1, 1,
+                0, 1,
+            ]), gl.STATIC_DRAW);
+    
+
+            return {
+                position: positionBuffer,
+                textureCoord: textureBuffer,
+                indices: indexBuffer,
+            };
+    }
 }
 
 export { initBuffers, initPositionBuffer, initTextureBuffer };

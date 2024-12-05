@@ -1,12 +1,10 @@
 class PdfHandle {
 
-
-
     constructor() {
 
         this.pdfDoc = null
         this.pageNum = 0
-        this.scale = 1
+        this.scale = 2
 
 
         var { pdfjsLib } = globalThis;
@@ -37,6 +35,7 @@ class PdfHandle {
                 this.loadingCanvas.width = img.width;
                 this.loadingCanvas.height = img.height;
                 this.loadingCtx.drawImage(img, 0, 0, img.width, img.height);
+                console.log(img.width + " " + img.height);
 
                 resolve(img)
             }

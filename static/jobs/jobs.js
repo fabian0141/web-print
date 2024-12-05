@@ -119,7 +119,7 @@ function getPrintInfo() {
                             document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde angehalten";
                             break;
                         case 5:
-                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Das Dokument wird gedruckt";
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wird verarbeitet";
                             break;
                         case 6:
                             document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde gestoppt";

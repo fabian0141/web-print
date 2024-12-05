@@ -2,6 +2,7 @@ import { PdfHandle } from "./pdfHandle.js"
 import { initBuffers, initPositionBuffer, initTextureBuffer } from "./previewBuffer.js";
 import { Shader } from "./previewShader.js";
 import { createImageTexture, drawScene } from "./previewScene.js";
+import { PreviewCanvas } from "./previewCanvas.js";
 
 function mod(n, m) {
 	return ((n % m) + m) % m;
@@ -20,18 +21,15 @@ class Preview  {
         this.curSide = 0;
         this.isVertical = true;
         this.pagesPerSide = 1;
-        this.pageScaling = 2;
+        this.pageScaling = 1;
         this.waitForRender = false;
 
         this.canvasView = document.getElementById('the-canvas');
         this.gl = this.canvasView.getContext('webgl');
-        this.initGL();
-    }
-
-    initGL() {
         var shader = new Shader(this.gl);
-        this.prepProgramInfo = shader.getProgramInfo(this.gl);
-        this.prepBuffers = initBuffers(this.gl);
+        this.prepProgramInfo = shader.getProgramInfo(this.gl, shader.PAGE);
+        this.prepBuffers = initBuffers(this.gl, shader.PAGE);
+        this.prevCanvas = new PreviewCanvas(this.canvasView, this.gl, shader);
     }
 
     loadPdf(url) {
@@ -53,11 +51,11 @@ class Preview  {
             document.getElementById("pages").value = "";
             this.pageNum = 0;
             this.newPageSize = true;
-            this.makeAdjustedImage();
+            this.makeAdjustedImage(true);
         });
     }
 
-    async makeAdjustedImage() {
+    async makeAdjustedImage(scale) {
         var start = Date.now();
     
         var pageIdx = this.pagesToPrint[this.curSide * this.pagesPerSide];
@@ -79,14 +77,12 @@ class Preview  {
         }
         this.waitForRender = false;
 
-        var start1 = Date.now();
-
-        this.canvasView.width = this.pageSize.x;
-        this.canvasView.height = this.pageSize.y;
-        this.gl.viewport(0, 0, this.pageSize.x, this.pageSize.y);
-        var start2 = Date.now();
-
-        this.gl.clearColor(1.0, 1.0, 1.0, 1.0); // Clear to black, fully opaque
+        var width = this.pageSize.x
+        var height = this.pageSize.y;
+        this.canvasView.width = width;
+        this.canvasView.height = height;
+        this.gl.viewport(0, 0, width, height);
+        this.gl.clearColor(1.0, 1.0, 1.0, 1.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
         for (let i = 0; i < maxPagesPerSide; i++) {
@@ -96,7 +92,25 @@ class Preview  {
         for (let i = 0; i < maxPagesPerSide; i++) {
             this.gl.deleteTexture(images[i]);
         }
+        if (scale) {
+            var pixels = new Uint8Array(width * height * 4);
+            this.gl.readPixels(0, 0, width, height, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixels);
+            this.prevCanvas.updateImg(pixels, width, height);
+        }
+        console.log(Date.now() - start);
+    }
 
+    async sendImages(filename, username) {
+        for (let i = 0; i < this.maxSides; i++) {
+            this.curSide = i;
+            await this.makeAdjustedImage(false);
+
+            await this.canvasView.toBlob((blob) => {
+                let formData = new FormData();
+                formData.append("file", blob, filename + "_" + username + "_" + i + ".jpg");
+                $.ajax({url: "/print-img", data: formData, processData: false, contentType: false, type: 'POST', success: function(data) {}});
+            }, "image/jpeg", 1);
+        }
     }
 
     nextSide() {
@@ -105,7 +119,7 @@ class Preview  {
         }
         this.curSide = mod(this.curSide + 1, this.maxSides);
         document.getElementById('pageNum').textContent = this.curSide + 1;
-        this.makeAdjustedImage();
+        this.makeAdjustedImage(true);
     }
 
     prevSide() {
@@ -114,7 +128,7 @@ class Preview  {
         }
         this.curSide = mod(this.curSide - 1, this.maxSides);
         document.getElementById('pageNum').textContent = this.curSide + 1;
-        this.makeAdjustedImage();
+        this.makeAdjustedImage(true);
     }
 
     setPagesPerSide(num) {

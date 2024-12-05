@@ -11,15 +11,14 @@
     <script src="static/library/jquery-3.6.0.js"></script>
     <script src="static/library/pdf.js"></script>
 
-    <form id="printForm" action="/print" enctype="multipart/form-data" method="post">
         <div>
             <div id="preview">
                 <h1 id="title">PDF Online Printer <div id="infoview"> <img src="static/media/info_icon.svg" width="35px"/><br/>
-                    <span id="displayinfo">Die Vorschau ist nur als Hilfe gedacht! Das gedruckte Ergebnis kann von der Vorschau abweichen.</span></div></h1>
+                    <span id="displayinfo"></span></div></h1>
 
                 <div id="pdfArea">
-                 <label><canvas id="the-canvas"></canvas><br><br></label>
-             </div>
+                    <label><canvas id="the-canvas"></canvas><br><br></label>
+                </div>
 
              <div id="previewControlls">
                  <input  class="w3-button w3-brown w3-round" type="file" id="inputFile" name="filename" value="PDF auswählen" accept="application/pdf" required><br><br>
@@ -76,10 +75,16 @@
                 <button id="moreOptions" type="button">Mehr Optionen</button>
 
                 <div id="additionalOptions">
-                    <label>Auflösung:</label><br>
+                    <!--<label>Auflösung:</label><br>
                     <input type="radio" id="high-res" value="5" name="res"><label for="high-res"> Hohe Auflösung</label><br>
                     <input type="radio" id="mid-res" value="4" name="res" checked><label for="mid-res"> Normale Auflösung</label><br>
-                    <input type="radio" id="low-res" value="3" name="res"><label for="low-res"> Niedrige Auflösung</label><br><br>
+                    <input type="radio" id="low-res" value="3" name="res"><label for="low-res"> Niedrige Auflösung</label><br><br>-->
+
+                    <label>Auflösung:</label><br>
+                    <input type="radio" id="low-res" value="150" name="res"><label for="low-res"> 150 dpi (Niedrig)</label><br>
+                    <input type="radio" id="mid-res" value="300" name="res" checked><label for="mid-res"> 300 dpi (Standard)</label><br>
+                    <input type="radio" id="high-res" value="600" name="res"><label for="high-res"> 600 dpi (Hoch)</label><br>
+                    <input type="radio" id="max-res" value="1200" name="res"><label for="max-res"> 1200 dpi (Sehr hoch)</label><br><br>
 
                     <label>Seiten pro Blatt:</label><br>
                     <select id="pagespersheet" name="pages per sheet">
@@ -93,16 +98,17 @@
 
                     <label>Skalieren:</label><br>
                     <input type="radio" id="no-scale" value="none" name="scale"><label for="no-scale"> Nicht Skalieren</label><br>
-                    <input type="radio" id="fit-scale" value="fit" name="scale"><label for="fit-scale"> Druckbarer Bereich</label><br>
-                    <input type="radio" id="fill-scale" value="fill" name="scale" checked><label for="fill-scale"> Auf A4 Skalieren</label><br><br>
+                    <input type="radio" id="fit-scale" value="fit" name="scale" checked><label for="fit-scale"> Druckbarer Bereich</label><br>
+                    <input type="radio" id="fill-scale" value="fill" name="scale"><label for="fill-scale"> Auf A4 Skalieren</label><br><br>
 
                     <button id="lessOptions" type="button">Weniger Optionen</button>
                 </div>
                 <br/>
-                <input class="w3-button w3-brown w3-round" type="submit" value="Drucken">
+                <input class="w3-button w3-brown w3-round" value="Drucken als PDF" onclick="printPDF()">
+                <input class="w3-button w3-brown w3-round" value="Drucken als Bild" onclick="printImg()">
+
             </div>
         </div>
-    </form>
 
     <div id="fullgraybackground">
         <div style="position: relative;margin: auto;">
