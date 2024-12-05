@@ -2,8 +2,9 @@ version: '3'
 services:
   webprint:
     image: gitlab.hfk.whka.de:5050/netzwerkteam/web-print
+    restart: unless-stopped
     ports:
-      - 100.118.1.21:80:36657
+      - 100.118.1.21:443:36657
       - 100.118.1.21:631:631
     environment:
       - ADMIN_PASSWORD=cupsadmin

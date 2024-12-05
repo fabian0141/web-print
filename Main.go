@@ -502,8 +502,8 @@ func main() {
 	gatherAllPrinterInformations()
 
 	setupRoutes()
-	checkFatal(http.ListenAndServe(":36657", nil))
-	//checkFatal(http.ListenAndServeTLS(":36657", "./certs/cloud.hfk.whka.de.cert", "./certs/cloud.hfk.whka.de.key", nil))
+	//checkFatal(http.ListenAndServe(":36657", nil))
+	checkFatal(http.ListenAndServeTLS(":36657", "./certs/web-print.hfk.whka.de.crt", "./certs/web-print.hfk.whka.de.key", nil))
 	log.Printf("Stopping Server Gracefully...\n")
 }
 
