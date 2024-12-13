@@ -4,6 +4,8 @@ import { createImageTexture2, prepCanvasDraw, canvasDraw } from "./previewScene.
 
 class PreviewCanvas {
     constructor(canvas, gl, shader) {
+        this.area = $("#pdfArea");
+        this.canvas = canvas;
         this.gl = gl;
         this.image = null;
         this.programInfo = shader.getProgramInfo(this.gl, shader.CANVAS);
@@ -21,6 +23,7 @@ class PreviewCanvas {
         this.height = 0;
 
         this.lastTouchDistance = null;
+        this.isScaling = false;
 
         // Bind methods
         this.handleWheel = this.handleWheel.bind(this);
@@ -37,39 +40,43 @@ class PreviewCanvas {
         canvas.addEventListener('mousemove', this.handleMouseMove);
         canvas.addEventListener('mouseup', this.handleMouseUp);
         canvas.addEventListener('mouseleave', this.handleMouseUp);
-        /*canvas.addEventListener('touchstart', this.handleTouchStart);
+        canvas.addEventListener('touchstart', this.handleTouchStart);
         canvas.addEventListener('touchmove', this.handleTouchMove);
-        canvas.addEventListener('touchend', this.handleTouchEnd);*/
+        canvas.addEventListener('touchend', this.handleTouchEnd);
     }
 
     updateImg(pixels, width, height) {
-        console.log(pixels, width, height)
-        this.gl.viewport(0, 0, width, height);
+        const areaWidth = parseInt(this.area.width());
+        const areaHeight = parseInt(this.area.height());
+
+        this.gl.clearColor(0.9, 0.9, 0.9, 1.0);
+        this.gl.viewport(0, 0, areaWidth, areaHeight);
         this.image = createImageTexture2(this.gl, pixels, width, height);
-        this.width = width;
-        this.height = height;
-        prepCanvasDraw(this.gl, this.programInfo, this.image, this.buffers);
+        this.canvas.width = areaWidth;
+        this.canvas.height = areaHeight;
+        this.width = areaWidth;
+        this.height = areaHeight;
+        const ratio = (this.area.height() / this.area.width()) / (height / width);
+        prepCanvasDraw(this.gl, this.programInfo, this.image, this.buffers, ratio);
         this.update();
         //this.gl.deleteTexture(this.image);
     }
 
     update() {
-        this.gl.clearColor(1.0, 1.0, 1.0, 1.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         canvasDraw(this.gl, this.programInfo, this.zoom, this.offsetX, this.offsetY);
-        console.log(this.zoom, this.offsetX, this.offsetY);
+        //console.log(this.zoom, this.offsetX, this.offsetY);
     }
 
     handleWheel(event) {
         event.preventDefault();
-        const zoomSpeed = 0.001;
         const mouseX = ((event.offsetX / this.width) * 2 - 1);
         const mouseY = -((event.offsetY / this.height) * 2 - 1);
 
-        const newScale = Math.exp(-event.deltaY * 0.01);
+        const newScale = Math.exp(-event.deltaY * 0.001);
 
         const newZoom = this.zoom * newScale;
-        if (newZoom < 0.2 || newZoom > 5) {
+        if (newZoom < 0.8 || newZoom > 10) {
             return;
         }
         this.zoom = newZoom;
@@ -95,7 +102,7 @@ class PreviewCanvas {
 
         const newOffsetX = this.offsetX + dx;
         const newOffsetY = this.offsetY - dy;
-        console.log(newOffsetX + this.zoom, newOffsetY - this.zoom);
+        //console.log(newOffsetX, newOffsetY);
 
         if (newOffsetX - this.zoom > 1 || newOffsetX + this.zoom < -1 || newOffsetY - this.zoom > 1 || newOffsetY + this.zoom < -1) {
             this.lastX = event.clientX;
@@ -128,34 +135,58 @@ class PreviewCanvas {
     handleTouchMove(event) {
         event.preventDefault();
         if (event.touches.length === 1) {
-            const touchX = event.touches[0].clientX;
-            const touchY = event.touches[0].clientY;
+            if (this.isScaling) return;
 
-            const dx = touchX - this.lastX;
-            const dy = touchY - this.lastY;
-
-            this.offsetX += dx;
-            this.offsetY += dy;
-
-            this.lastX = touchX;
-            this.lastY = touchY;
+            const dx = (event.touches[0].clientX - this.lastX) / this.width * 2;
+            const dy = (event.touches[0].clientY - this.lastY) / this.height * 2;
+    
+            const newOffsetX = this.offsetX + dx;
+            const newOffsetY = this.offsetY - dy;
+            //console.log(newOffsetX, newOffsetY, dx, dy, event.touches, this.width, this.height);
+    
+            if (newOffsetX - this.zoom > 1 || newOffsetX + this.zoom < -1 || newOffsetY - this.zoom > 1 || newOffsetY + this.zoom < -1) {
+                this.lastX = event.touches[0].clientX;
+                this.lastY = event.touches[0].clientY;
+                return;
+            }
+    
+            this.offsetX = newOffsetX;
+            this.offsetY = newOffsetY;
+    
+            this.lastX = event.touches[0].clientX;
+            this.lastY = event.touches[0].clientY;
 
             this.update();
         } else if (event.touches.length === 2) {
             const currentDistance = this.getTouchDistance(event.touches);
 
             if (this.lastTouchDistance) {
-                const delta = currentDistance - this.lastTouchDistance;
-                const zoomSpeed = 0.005;
-                const newScale = Math.min(Math.max(this.zoom + delta * zoomSpeed, 0.1), 5);
+                this.isScaling = true;
 
-                const centerX = (event.touches[0].clientX + event.touches[1].clientX) / 2;
-                const centerY = (event.touches[0].clientY + event.touches[1].clientY) / 2;
+                const elemOffset = this.area.offset();
+                const centerX = (event.touches[0].clientX + event.touches[1].clientX) / 2 - elemOffset.left;
+                const centerY = (event.touches[0].clientY + event.touches[1].clientY) / 2 - elemOffset.top;
 
-                this.offsetX -= (centerX / this.zoom - centerX / newScale);
-                this.offsetY -= (centerY / this.zoom - centerY / newScale);
+                const mouseX = ((centerX / this.width) * 2 - 1);
+                const mouseY = -((centerY / this.height) * 2 - 1);
 
-                this.zoom = newScale;
+        
+                const dist = currentDistance - this.lastTouchDistance;
+                const newScale = Math.exp(dist * 0.005);
+        
+                const newZoom = this.zoom * newScale;
+                if (newZoom < 0.8 || newZoom > 10) {
+                    return;
+                }
+                this.zoom = newZoom;
+                this.offsetX = mouseX - newScale * (mouseX - this.offsetX);
+                this.offsetY = mouseY - newScale * (mouseY - this.offsetY);
+                //console.log(centerX, centerY, this.offsetX, this.offsetY);
+
+        
+                console.log(centerX, centerY, mouseX, mouseY, this.zoom, this.offsetX, this.offsetY);
+
+
                 this.update();
             }
 
@@ -163,7 +194,10 @@ class PreviewCanvas {
         }
     }
 
-    handleTouchEnd() {
+    handleTouchEnd(event) {
+        if (event.touches.length == 0) {
+            this.isScaling = false;
+        }
         this.lastTouchDistance = null;
     }
 

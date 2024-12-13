@@ -15,7 +15,7 @@ function drawScene(gl, programInfo, image, buffers, isBW, pageScaling, pagesPerS
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0);
 }
 
-function prepCanvasDraw(gl, programInfo, image, buffers) {
+function prepCanvasDraw(gl, programInfo, image, buffers, ratio) {
     setTextureAttribute(gl, buffers, programInfo);
     setPositionAttribute2(gl, buffers, programInfo);
 
@@ -25,10 +25,10 @@ function prepCanvasDraw(gl, programInfo, image, buffers) {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, image);
     gl.uniform1i(programInfo.uniformLocations.preview, 0);
+    gl.uniform1f(programInfo.uniformLocations.ratio, ratio);
 }
 
 function canvasDraw(gl, programInfo, zoom, panX, panY) {
-    gl.uniform1i(programInfo.uniformLocations.preview, 0);
     gl.uniform1f(programInfo.uniformLocations.zoom, zoom);
     gl.uniform2f(programInfo.uniformLocations.pan, panX, panY);
 
@@ -62,8 +62,8 @@ function createImageTexture(gl, imageData) {
 
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_FILTER, gl.LINEAR);
     return tex
 }
 

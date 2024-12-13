@@ -1,3 +1,8 @@
+import { Language } from "../lang.js";
+
+var lang = new Language();
+lang.setLangJobs(lang.curLang);
+
 var jobRows = new Map();
 
 getAllJobs();
@@ -9,6 +14,7 @@ function getAllJobs() {
 
     $.ajax({url: "/info-all-prints", data: formData, processData: false, contentType: false, type: 'POST', success: function(data) {
         var splitData = data.split("\n");
+        console.log(data)
         for (var i = 0; i < splitData.length; i++) {
             if (splitData[i].startsWith("job-state:")) {
 
@@ -21,6 +27,9 @@ function getAllJobs() {
                 var nameStart = splitData[i].indexOf("+");
                 var name = splitData[i].substring(nameStart+1);
 
+                console.log(job, state, date, printer, name)
+                console.log(this)
+
                 var row = document.getElementById("jobsTable").insertRow(-1);
                 var cell = row.insertCell(0);
                 cell.innerHTML = name;
@@ -28,34 +37,34 @@ function getAllJobs() {
                 cell2.innerHTML = date;
                 var cell3 = row.insertCell(2);
                 var cell4 = row.insertCell(3);
-                cell4.innerHTML = '<button class="w3-button w3-brown w3-round" onclick="cancelPrintJob(' + job + ', \'' + printer + '\')">Abbrechen</button>';
+                cell4.innerHTML = '<button class="w3-button w3-brown w3-round" onclick="cancelPrintJob(' + job + ', \'' + printer + '\')">' + lang.cancelJob + '</button>';
 
                 switch (state) {
                     case 3:
-                        cell3.innerHTML = "Der Druck ist in der Warteschlange";
+                        cell3.innerHTML = lang.stateJob3;
                         break;
                     case 4:
-                        cell3.innerHTML = "Der Druck wurde angehalten";
+                        cell3.innerHTML = lang.stateJob4;
                         break;
                     case 5:
-                        cell3.innerHTML = "Das Dokument wird gedruckt";
+                        cell3.innerHTML = lang.stateJob5;
                         break;
                     case 6:
-                        cell3.innerHTML = "Der Druck wurde gestoppt";
+                        cell3.innerHTML = lang.stateJob6;
                         break;
                     case 7:
-                        cell3.innerHTML = "Der Druck wurde von dir abgebrochen";
+                        cell3.innerHTML = lang.stateJob7;
                         break;
                     case 8:
-                        cell3.innerHTML = "Der Druck wurde vom Drucker abgebrochen";
+                        cell3.innerHTML = lang.stateJob8;
                         break;
                     case 9:
-                        cell3.innerHTML = "Das Dokument wurde gedruckt";
+                        cell3.innerHTML = lang.stateJob9;
                         break;
                     default:
                         cell.innerHTML = "-";
                         cell.innerHTML = "-";
-                        cell3.innerHTML = "Unbekannter Fehler. Versuch es nochmal!";
+                        cell3.innerHTML = lang.stateJob0;
                         cell4.innerHTML = "";
                         console.log(state);
                 }
@@ -76,6 +85,7 @@ function jsonJobsRequest() {
     var printerJobs = new Map();
 
     jobRows.forEach((values,job)=>{
+        console.log("test", values);
         printer = values.printerName;
 
         if (printerJobs.has(printer)) {
@@ -113,28 +123,28 @@ function getPrintInfo() {
 
                     switch (state) {
                         case 3:
-                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck ist in der Warteschlange";
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = this.stateJob3;
                             break;
                         case 4:
-                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde angehalten";
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = this.stateJob4;
                             break;
                         case 5:
-                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wird verarbeitet";
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = this.stateJob5;
                             break;
                         case 6:
-                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde gestoppt";
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = this.stateJob6;
                             break;
                         case 7:
-                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde von dir abgebrochen";
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = this.stateJob7;
                             break;
                         case 8:
-                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Der Druck wurde vom Drucker abgebrochen";
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = this.stateJob8;
                             break;
                         case 9:
-                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Das Dokument wurde gedruckt";
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = this.stateJob9;
                             break;
                         default:
-                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = "Unbekannter Fehler. Versuch es nochmal!";
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = this.stateJob0;
                             console.log(state);
                     }
                 } else {

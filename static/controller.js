@@ -1,6 +1,7 @@
 import { SidePanel } from "./previewpage/sidePanel.js";
 import { Preview } from "./previewpage/preview.js"
 import { Language } from "./lang.js";
+import { getSessionInt, getStoredInt, getStoredString } from "./storage.js";
 
 document.getElementById('pageNum').textContent = 0;
 document.getElementById('pageCount').textContent = 0;
@@ -12,16 +13,39 @@ var jobID = -1;
 var sidePanel = new SidePanel();
 var preview = new Preview();
 var lang = new Language();
+lang.setLangMain(lang.curLang);
+
+// set options
+var printerIdx = localStorage.getItem("printer");
+console.log(printerIdx);
+if (printerIdx === null || printerIdx >= $("#printers option").length) {
+	printerIdx = 0;
+}
+$('#printers option').eq(printerIdx).prop('selected', true);
+printerChanged();
+
+//session options
+
+/*var color = getSessionInt("color", 0);
+$("input[name='color']").eq(color).prop("checked", true);
+setBW(color);
+
+$("input[name='sides']").eq(getSessionInt("duplex", 0)).prop("checked", true);
+$("input[name='res']").eq(getSessionInt("res", 0)).prop("checked", true);
+$("input[name='pagespersheet']").eq(getSessionInt("pps", 0)).prop("checked", true);
+$("input[name='scale']").eq(getSessionInt("scale", 2)).prop("checked", true);*/
+
+
 
 $("#printForm").on("submit", function (e) {
 	document.getElementById('cancelCurPrintBut').style.display = "block";
 	document.getElementById("fullgraybackground").style.display = "flex";
-
 });
 
 $('#inputFile').change( function(event) {
 
 	var url = URL.createObjectURL(event.target.files[0]);
+	console.log(url, event.target.files[0]);
 	preview.loadPdf(url);
  });
 
@@ -80,6 +104,7 @@ function dropDocument(e) {
 		document.getElementById("inputFile").files = dataTransfer.files;
 
 		var url = URL.createObjectURL(document.getElementById("inputFile").files[0]);
+		console.log(url, document.getElementById("inputFile").files[0]);
 
 		preview.loadPdf(url);
 	}
@@ -93,9 +118,9 @@ document.getElementById('prev').addEventListener('click', () => { preview.prevSi
 
 document.getElementById('pages').addEventListener('change', pagesSelectionChanged);
 var bwB = document.getElementById('blackwhite');
-bwB.addEventListener('click', () => { setBW(bwB, true) })
+bwB.addEventListener('click', () => { setBW(bwB, true); sessionStorage.setItem("color", "" + 0); })
 var colB = document.getElementById('colored');
-colB.addEventListener('click', () => { setBW(colB, false) });
+colB.addEventListener('click', () => { setBW(colB, false); sessionStorage.setItem("color", "" + 1); });
 
 
 document.getElementById('cancelCurPrintBut').addEventListener('click', cancelCurPrint);
@@ -164,36 +189,47 @@ function setPageScaling(ps) {
     preview.makeAdjustedImage(true);
 }
 
-function printPDF() {
+document.getElementById("germanLang").addEventListener("click", () => { lang.setLangMain(lang.DE); });
+document.getElementById("englishLang").addEventListener("click", () => { lang.setLangMain(lang.EN); });
+
+document.getElementById("pdfButton").addEventListener("click", () => {
 	let formData = new FormData();
-	formData.append("filename", $("#inputFile").val(), filename);
+	console.log($("#inputFile").prop("files")[0], $("#inputFile").val())
+	formData.append("filename", $("#inputFile").prop("files")[0], $("#inputFile").prop("files")[0].name);
+	console.log($("#user").val(), $("#password").val(), $("select[name='printers']").val(), 
+		$("#pages").val(), $("#copies").val(), $("input[name='color']:checked").val(), $("input[name='sides']:checked").val(), $("input[name='res']:checked").val(),
+		$("select[name='pages per sheet']").val(), $("input[name='scale']:checked").val());
 	formData.append("username", $("#user").val());
 	formData.append("password", $("#password").val());
-	formData.append("printers", $("input[name='printers']:selected").val());
+	formData.append("printers", $("select[name='printers']").val());
 	formData.append("page numbers", $("#pages").val());
 	formData.append("copy number", $("#copies").val());
-	formData.append("color", $("input[name='color']:selected").val());
-	formData.append("sides", $("input[name='sides']:selected").val());
-	formData.append("res", $("input[name='res']:selected").val());
-	formData.append("pages per sheet", $("input[name='pages per sheet']:selected").val());
-	formData.append("scale", $("input[name='scale']:selected").val());
+	formData.append("color", $("input[name='color']:checked").val());
+	formData.append("sides", $("input[name='sides']:checked").val());
+	formData.append("res", $("input[name='res']:checked").val());
+	formData.append("pages per sheet", $("select[name='pages per sheet']").val());
+	formData.append("scale", $("input[name='scale']:checked").val());
 
-	$.ajax({url: "/print-img", data: formData, processData: false, contentType: false, type: 'POST', success: function(data) {}});
+	$.ajax({url: "/print-pdf", data: formData, processData: false, contentType: false, type: 'POST', success: function(data) {
+		window.location.href = "/jobs";
+		//$("html").html(data);
+		console.log(data);
+	}});
 	document.getElementById('cancelCurPrintBut').style.display = "block";
 	document.getElementById("fullgraybackground").style.display = "flex";
-}
+});
 
-function printImg() {
+/*document.getElementById("imgButton").addEventListener("click", () => {
 	let formData = new FormData();
 	formData.append("username", $("#user").val());
 	formData.append("password", $("#password").val());
 	formData.append("printers", $("input[name='printers']:selected").val());
-	formData.append("page numbers", $("#pages").val());
+	formData.append("page numbers", "");
 	formData.append("copy number", $("#copies").val());
 	formData.append("color", $("input[name='color']:selected").val());
 	formData.append("sides", $("input[name='sides']:selected").val());
 	formData.append("res", $("input[name='res']:selected").val());
-	formData.append("pages per sheet", $("input[name='pages per sheet']:selected").val());
+	formData.append("pages per sheet", 1);
 	formData.append("scale", $("input[name='scale']:selected").val());
 	formData.append("maxSides", preview.maxSides);
 
@@ -201,4 +237,25 @@ function printImg() {
 	document.getElementById('cancelCurPrintBut').style.display = "block";
 	document.getElementById("fullgraybackground").style.display = "flex";
 	preview.sendImages();
+});*/
+
+//test();
+
+function test() {
+	// const url = "https://download.epson-europe.com/pub/download/6324/epson632476eu.pdf";
+	// const url = "https://download.epson-europe.com/pub/download/6324/epson632464eu.pdf";
+	//const url = "./static/TestPDF/TestA5.pdf"
+	//const url = "https://s28.q4cdn.com/392171258/files/doc_downloads/test.pdf";
+	const url = "./static/TestPDF/DS_ECO_P6230cdn_VIEW.pdf"
+
+	fetch(url).then(response => response.blob()).then(blob => {
+		const file = new File([blob], "sample.pdf", { type: "application/pdf" });
+		
+		const dataTransfer = new DataTransfer();
+		dataTransfer.items.add(file);
+
+		var urlObject = URL.createObjectURL(dataTransfer.files[0]);
+		console.log(urlObject, dataTransfer.files[0]);
+		preview.loadPdf(urlObject);
+	});
 }

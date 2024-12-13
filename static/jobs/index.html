@@ -2,7 +2,7 @@
 <head>
     <title>HFK Web Printer</title>
     <link rel="stylesheet" href="static/stylesheet.css">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="static/w3.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="static/media/fckprinters.png" type="image/x-icon">
 </head>
@@ -11,18 +11,18 @@
     <script src="static/library/jquery-3.6.0.js"></script>
 
     <div id="jobsView">
-        <h1 id="title">Druck Aufträge</h1>
+        <h1 id="title"></h1>
 
         <table id="jobsTable">
             <tr>
-                <th>Titel</th>
-                <th>Datum</th>
-                <th>Status</th>
+                <th id="titleCell"></th>
+                <th id="titleDate"></th>
+                <th id="titleState"></th>
                 <th></th>
             </tr>
         </table>
 
-        <a href="../" id="furtherPrint"><button class="w3-button w3-brown w3-round">Weiter Drucken</button></a>
+        <a href="../" id="furtherPrint"><button class="w3-button w3-brown w3-round" id="printMore"></button></a>
     </div>
 
     <div id="fullgraybackground">
@@ -37,4 +37,4 @@
 </body>
 </html>
 
-<script src="/static/jobs/jobs.js"></script>
+<script src="/static/jobs/jobs.js" type="module"></script>

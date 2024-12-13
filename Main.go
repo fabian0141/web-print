@@ -22,13 +22,11 @@ import (
 )
 
 /**
-	scale preview
 	test drivers
-	add image option instead of pdf
-	test image printing
-	language EN/DE
+	- add image option instead of pdf
+	- test image printing
 	pricing
-	keep options between visits
+	- collate option
 **/
 
 const (
@@ -79,7 +77,7 @@ func setupRoutes() {
 	http.HandleFunc("/jobs", showJobsPage)
 	http.Handle("/static/", http.StripPrefix("/static/", fileServer))
 
-	http.HandleFunc("/print", print)
+	http.HandleFunc("/print-pdf", printPDF)
 	http.HandleFunc("/cancel-print", cancelPrint)
 	http.HandleFunc("/cancel-current-print", cancelCurrentPrint)
 	http.HandleFunc("/info-prints", infoPrints)
@@ -98,6 +96,8 @@ func showPrintPage(w http.ResponseWriter, r *http.Request) {
 		`<script>
 			function printerChanged() {
 				var idx = document.getElementById("printers").selectedIndex;
+				console.log("lul", idx);
+				localStorage.setItem("printer", "" + idx);
 				switch (idx) {
 		`...)
 
@@ -143,7 +143,6 @@ func showPrintPage(w http.ResponseWriter, r *http.Request) {
 				}
 
 			}
-			printerChanged();
 		</script>`...)
 
 	pageContent = append(pageContent, printerScripts...)
@@ -194,7 +193,7 @@ func showJobsPage(w http.ResponseWriter, r *http.Request) {
 }
 
 // Get document and save locally then execute printcli with all print settings
-func print(w http.ResponseWriter, r *http.Request) {
+func printPDF(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Printing Document...\n")
 
 	cookie, err := r.Cookie("session_token")
@@ -258,7 +257,7 @@ func print(w http.ResponseWriter, r *http.Request) {
 	path, _ := filepath.Abs(name)
 	log.Printf("Size: %d; Mode: %x; Sys: %x; Path: %s", stat.Size(), stat.Mode(), stat.Sys(), path)
 
-	log.Printf("%s %s %s %s %s %s %s\n", r.FormValue("page numbers"), r.FormValue("copy number"), r.FormValue("color"), r.FormValue("sides"),
+	log.Printf("%s %s %s %s %s %s %s %s\n", r.FormValue("printers"), r.FormValue("page numbers"), r.FormValue("copy number"), r.FormValue("color"), r.FormValue("sides"),
 		r.FormValue("res"), r.FormValue("pages per sheet"), r.FormValue("scale"))
 
 	var pageSelection = "All"
@@ -288,7 +287,7 @@ func print(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if jobID == "" {
-		http.Redirect(w, r, "/jobs", http.StatusSeeOther)
+		//http.Redirect(w, r, "/jobs", http.StatusSeeOther)
 		return
 	}
 	/*
@@ -314,7 +313,7 @@ func print(w http.ResponseWriter, r *http.Request) {
 		session.PrintJobs[r.FormValue("printers")] = append(session.PrintJobs[r.FormValue("printers")], jobID)
 	}
 	checkCancelation(session, r.FormValue("printers"), jobID)
-	http.Redirect(w, r, "/jobs", http.StatusSeeOther)
+	//http.Redirect(w, r, "/jobs", http.StatusSeeOther)
 }
 
 func infoPrints(w http.ResponseWriter, r *http.Request) {
@@ -502,8 +501,8 @@ func main() {
 	gatherAllPrinterInformations()
 
 	setupRoutes()
-	//checkFatal(http.ListenAndServe(":36657", nil))
-	checkFatal(http.ListenAndServeTLS(":36657", "./certs/web-print.hfk.whka.de.crt", "./certs/web-print.hfk.whka.de.key", nil))
+	checkFatal(http.ListenAndServe(":36657", nil))
+	//checkFatal(http.ListenAndServeTLS(":36657", "./certs/web-print.hfk.whka.de.crt", "./certs/web-print.hfk.whka.de.key", nil))
 	log.Printf("Stopping Server Gracefully...\n")
 }
 

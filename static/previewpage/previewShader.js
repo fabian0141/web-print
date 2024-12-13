@@ -32,7 +32,6 @@ class Shader {
             } else {
                 gl_FragColor = col;
             }
-
         }
     `;
 
@@ -41,11 +40,12 @@ class Shader {
         attribute vec2 aTextureCoord;
         uniform float zoom;
         uniform vec2 pan;
+        uniform float ratio;
 
         varying vec2 vTexCoord;
 
         void main() {
-            vec2 position = zoom * aVertexPosition + pan;
+            vec2 position = zoom * vec2(ratio, 1.0) * aVertexPosition + pan;
             gl_Position = vec4(position, 0, 1);
             vTexCoord = aTextureCoord;
         }
@@ -94,7 +94,8 @@ class Shader {
                     uniformLocations: {
                         preview: gl.getUniformLocation(this.shaderCanvasProgram, "uTexture"), 
                         zoom: gl.getUniformLocation(this.shaderCanvasProgram, "zoom"),
-                        pan: gl.getUniformLocation(this.shaderCanvasProgram, "pan"),       
+                        pan: gl.getUniformLocation(this.shaderCanvasProgram, "pan"),    
+                        ratio: gl.getUniformLocation(this.shaderCanvasProgram, "ratio")
                     }
                 };
         }

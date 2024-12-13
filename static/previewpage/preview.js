@@ -21,7 +21,7 @@ class Preview  {
         this.curSide = 0;
         this.isVertical = true;
         this.pagesPerSide = 1;
-        this.pageScaling = 1;
+        this.pageScaling = 2;
         this.waitForRender = false;
 
         this.canvasView = document.getElementById('the-canvas');
@@ -82,6 +82,7 @@ class Preview  {
         this.canvasView.width = width;
         this.canvasView.height = height;
         this.gl.viewport(0, 0, width, height);
+
         this.gl.clearColor(1.0, 1.0, 1.0, 1.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 

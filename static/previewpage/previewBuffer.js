@@ -1,7 +1,7 @@
 function initTextureBuffer(gl, oldTextureCoordBuffer, size, pageScaling) {
 
     var textureCoordinates = [];
-    if (pageScaling == 2) {
+    if (pageScaling != 0) {
         textureCoordinates = [
             0.0, 1.0, 
             1.0, 1.0, 
@@ -93,11 +93,11 @@ function initPositionBuffer(gl, positionBuffer, isVertical, pagesPerSide, pageSc
     var area = 2.0;
 
     if (pageScaling == 1) {
-        topStart = 0.9;
-        bottomStart = 0.9;
-        leftStart = -0.9;
-        rightStart = -0.9;
-        var area = 1.8;
+        topStart = 0.95;
+        bottomStart = 0.95;
+        leftStart = -0.95;
+        rightStart = -0.95;
+        var area = 1.9;
     }
 
     for (let y = 0; y < divVert; y++) {

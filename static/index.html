@@ -2,22 +2,21 @@
 <head>
     <title>HFK Web Printer</title>
     <link rel="stylesheet" href="static/stylesheet.css">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="static/w3.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="static/media/fckprinters.png" type="image/x-icon">
+    <script src="static/library/jquery-3.6.0.js"></script>
+    <script src="static/library/pdf.js"></script>
 </head>
 
 <body id="background">
-    <script src="static/library/jquery-3.6.0.js"></script>
-    <script src="static/library/pdf.js"></script>
-
         <div>
             <div id="preview">
                 <h1 id="title">PDF Online Printer <div id="infoview"> <img src="static/media/info_icon.svg" width="35px"/><br/>
                     <span id="displayinfo"></span></div></h1>
 
                 <div id="pdfArea">
-                    <label><canvas id="the-canvas"></canvas><br><br></label>
+                    <canvas id="the-canvas"></canvas>
                 </div>
 
              <div id="previewControlls">
@@ -25,7 +24,7 @@
 
                  <div>
                     <button type="button" class="w3-button w3-brown w3-round pageButton" id="prev">Voriges</button>
-                    <span id="pageNumber">Seite: <span id="pageNum"></span> / <span id="pageCount"></span></span>
+                    <span id="pageNumber"><span id="pageText"></span><span id="pageNum"></span> / <span id="pageCount"></span></span>
                     <button type="button" class="w3-button w3-brown w3-round pageButton" id="next">Nächstes</button>
                 </div>
             </div>
@@ -33,37 +32,44 @@
 
         <div id="options">
 
-            <label for="user">Nutzername:</label><br>
+            <div>
+                <img id="germanLang" value="Drucken als PDF" width="48px" src="static/media/german.png">
+                <img id="englishLang" value="Drucken als Bild" width="48px" src="static/media/english.png">
+            </div>
+
+
+            <label id="userLabel" for="user"></label><br>
             <input type="text" id="user" name="username" autocomplete="username" required><br><br>
 
-            <label for="password">Passwort:</label><br>
+            <label id="passwordLabel" for="password"></label><br>
             <input type="password" id="password" name="password" autocomplete="current-password" required><br><br>
 
             <div id="seperator"></div><br><br>
 
-                <label for="cars">Wähle einen Drucker:</label><br>
+                <label id="printersLabel" for="printers"></label><br>
                 <select name="printers" id="printers" onchange="printerChanged()">
                     {{range .Printers}}
                         <option>{{.}}</option>
                     {{end}}
                 </select><br><br>
 
-                <label for="pages">Seiten Nummern:</label><br>
+                <label id="textLabel" for="pages"></label><br>
                 <input type="text" id="pages" name="page numbers" pattern="|([1-9][0-9]*(-[1-9][0-9]*){0,1}(,[1-9][0-9]*(-[1-9][0-9]*){0,1})*)"
                 title="Wähle einzelne Seiten durch ',' separiert aus oder mehrere Seiten mit '-' durch z.B.'1-3,5,7-8' um Die Seiten 1 bis 3, 5 und 7 bis 8 zu drucken" placeholder="1-3,5,7-8"><br><br>
 
-                <label for="copies">Anzahl an Kopien:</label><br>
+                <label id="copiesLabel" for="copies"></label><br>
                 <input type="number" id="copies" name="copy number" min="1" value="1"><br><br>
 
 
-                <label>Farbwahl:</label><br>
-                <input type="radio" id="blackwhite" value="monochrome" name="color" checked><label for="blackwhite" id="blackwhitelabel"> Schwarz/Weiß</label><br>
-                <input type="radio" id="colored" value="color"  name="color"><label for="colored" id="coloredlabel"> Farblich</label><br><br>
+                <label id="colorLabel"></label><br>
+                <input type="radio" id="blackwhite" value="monochrome" name="color" checked><label for="blackwhite" id="blackwhitelabel"></label><br>
+                <input type="radio" id="colored" value="color"  name="color"><label for="colored" id="coloredlabel"></label><br><br>
 
-                <label>Seiten Art:</label><br>
-                <input type="radio" id="onesided" value="one-sided" name="sides" checked><label for="onesided"> Einseitig</label><br>
-                <input type="radio" id="twosided" value="two-sided-long-edge" name="sides"><label for="twosided" id="twosidedlabel"> Doppelseitig (über lange Seite)</label><br>
-                <input type="radio" id="twosidedshort" value="two-sided-short-edge" name="sides"><label for="twosidedshort" id="twosidedshortlabel"> Doppelseitig (über kurze Seite)</label><br><br>
+                <label id="sidesLabel"></label><br>
+
+                <input type="radio" id="onesided" value="one-sided" name="sides" checked><label for="onesided" id="onesidedlabel"></label><br>
+                <input type="radio" id="twosided" value="two-sided-long-edge" name="sides"><label for="twosided" id="twosidedlabel"></label><br>
+                <input type="radio" id="twosidedshort" value="two-sided-short-edge" name="sides"><label for="twosidedshort" id="twosidedshortlabel"></label><br><br>
 
                 <!--<label for="portrait">Orientierung:</label><br>
                 <input type="radio" id="portrait" value="3" name="orientation" checked><label for="portrait"> Vertikal</label><br>
@@ -72,7 +78,7 @@
                 <input type="radio" id="revlandscape" value="5" name="orientation"><label for="revlandscape"> Umgekehrt Horizontal</label><br><br>-->
 
 
-                <button id="moreOptions" type="button">Mehr Optionen</button>
+                <button id="moreOptions" type="button"></button>
 
                 <div id="additionalOptions">
                     <!--<label>Auflösung:</label><br>
@@ -80,13 +86,13 @@
                     <input type="radio" id="mid-res" value="4" name="res" checked><label for="mid-res"> Normale Auflösung</label><br>
                     <input type="radio" id="low-res" value="3" name="res"><label for="low-res"> Niedrige Auflösung</label><br><br>-->
 
-                    <label>Auflösung:</label><br>
-                    <input type="radio" id="low-res" value="150" name="res"><label for="low-res"> 150 dpi (Niedrig)</label><br>
-                    <input type="radio" id="mid-res" value="300" name="res" checked><label for="mid-res"> 300 dpi (Standard)</label><br>
-                    <input type="radio" id="high-res" value="600" name="res"><label for="high-res"> 600 dpi (Hoch)</label><br>
-                    <input type="radio" id="max-res" value="1200" name="res"><label for="max-res"> 1200 dpi (Sehr hoch)</label><br><br>
+                    <label id="resolutionLabel"></label><br>
+                    <input type="radio" id="low-res" value="150" name="res"><label for="low-res" id="lowResLabel"></label><br>
+                    <input type="radio" id="mid-res" value="300" name="res" checked><label for="mid-res" id="midResLabel"></label><br>
+                    <input type="radio" id="high-res" value="600" name="res"><label for="high-res" id="highResLabel"></label><br>
+                    <input type="radio" id="max-res" value="1200" name="res"><label for="max-res" id="maxResLabel"></label><br><br>
 
-                    <label>Seiten pro Blatt:</label><br>
+                    <label id="ppsLabel"></label><br>
                     <select id="pagespersheet" name="pages per sheet">
                         <option selected>1</option>
                         <option>2</option>
@@ -96,16 +102,16 @@
                         <option>16</option>
                     </select><br><br>
 
-                    <label>Skalieren:</label><br>
-                    <input type="radio" id="no-scale" value="none" name="scale"><label for="no-scale"> Nicht Skalieren</label><br>
-                    <input type="radio" id="fit-scale" value="fit" name="scale" checked><label for="fit-scale"> Druckbarer Bereich</label><br>
-                    <input type="radio" id="fill-scale" value="fill" name="scale"><label for="fill-scale"> Auf A4 Skalieren</label><br><br>
+                    <label id="scaleLabel"></label><br>
+                    <input type="radio" id="no-scale" value="none" name="scale"><label for="no-scale" id="noScaleLabel"></label><br>
+                    <input type="radio" id="fit-scale" value="fit" name="scale"><label for="fit-scale" id="fitScaleLabel"></label><br>
+                    <input type="radio" id="fill-scale" value="fill" name="scale" checked><label for="fill-scale" id="fillScaleLabel"></label><br><br>
 
-                    <button id="lessOptions" type="button">Weniger Optionen</button>
+                    <button id="lessOptions" type="button"></button>
                 </div>
                 <br/>
-                <input class="w3-button w3-brown w3-round" value="Drucken als PDF" onclick="printPDF()">
-                <input class="w3-button w3-brown w3-round" value="Drucken als Bild" onclick="printImg()">
+                <button type="button" class="w3-button w3-brown w3-round" id="pdfButton">
+                <!--<button type="button" class="w3-button w3-brown w3-round" id="imgButton">-->
 
             </div>
         </div>
@@ -113,8 +119,8 @@
     <div id="fullgraybackground">
         <div style="position: relative;margin: auto;">
             <div id="loader">
-                <img id="test" src="static/media/loading.gif" width="80px"/><br id="breakLoader" />
-                <span id="printingMessage" style="text-align: center;">Auftrag wird an den Drucker gesendet.</span>
+                <img src="static/media/loading.gif" width="80px"/><br id="breakLoader" />
+                <span id="printingMessage" style="text-align: center;"></span>
             </div>
             <br/>
             <button id="cancelCurPrintBut" class="w3-button w3-brown w3-round" style="display: block; margin: 0 auto; font-size: 1.5em;">Abbrechen</button>
@@ -127,7 +133,7 @@
             <div style="text-align: center">
                 <img src="static/media/upload_icon.svg" width="200px">
             </div>
-            <h1 style="font-size: 50px"><b>Füge Dokument hinzu</b></h1>
+            <h1 style="font-size: 50px"><b><span id="addDoc"></span></b></h1>
         </div>
     </div>
 

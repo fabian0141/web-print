@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <cups/cups.h>
 
-// gcc -o ../cupscli `cups-config --cflags` cupscli.c `cups-config --libs`
+// gcc -o cupscli `cups-config --cflags` CupsAPI/cupscli.c `cups-config --libs`
 //zuper kommand: ipptool -tv ipp://localhost/job/{id} get-job-attributes.test
 
 typedef struct
