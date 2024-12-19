@@ -86,7 +86,7 @@ function jsonJobsRequest() {
 
     jobRows.forEach((values,job)=>{
         console.log("test", values);
-        printer = values.printerName;
+        var printer = values.printerName;
 
         if (printerJobs.has(printer)) {
             printerJobs.get(printer).jobs.push(job);
