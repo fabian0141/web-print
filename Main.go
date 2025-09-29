@@ -22,11 +22,13 @@ import (
 )
 
 /**
-	test drivers
 	- add image option instead of pdf
 	- test image printing
 	pricing
 	- collate option
+	ldap integration
+	check resolution (why is this so hard, fuck this option, removed until printer manufactures are not propietary assholes)
+	remove cookies at some point perhaps
 **/
 
 const (

@@ -14,7 +14,7 @@ function getAllJobs() {
 
     $.ajax({url: "/info-all-prints", data: formData, processData: false, contentType: false, type: 'POST', success: function(data) {
         var splitData = data.split("\n");
-        console.log(data)
+        //console.log(data)
         for (var i = 0; i < splitData.length; i++) {
             if (splitData[i].startsWith("job-state:")) {
 
@@ -27,8 +27,8 @@ function getAllJobs() {
                 var nameStart = splitData[i].indexOf("+");
                 var name = splitData[i].substring(nameStart+1);
 
-                console.log(job, state, date, printer, name)
-                console.log(this)
+                //console.log(job, state, date, printer, name)
+                //console.log(this)
 
                 var row = document.getElementById("jobsTable").insertRow(-1);
                 var cell = row.insertCell(0);
@@ -85,7 +85,7 @@ function jsonJobsRequest() {
     var printerJobs = new Map();
 
     jobRows.forEach((values,job)=>{
-        console.log("test", values);
+        //console.log("test", values);
         var printer = values.printerName;
 
         if (printerJobs.has(printer)) {
@@ -123,28 +123,28 @@ function getPrintInfo() {
 
                     switch (state) {
                         case 3:
-                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = this.stateJob3;
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = lang.stateJob3;
                             break;
                         case 4:
-                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = this.stateJob4;
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = lang.stateJob4;
                             break;
                         case 5:
-                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = this.stateJob5;
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = lang.stateJob5;
                             break;
                         case 6:
-                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = this.stateJob6;
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = lang.stateJob6;
                             break;
                         case 7:
-                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = this.stateJob7;
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = lang.stateJob7;
                             break;
                         case 8:
-                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = this.stateJob8;
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = lang.stateJob8;
                             break;
                         case 9:
-                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = this.stateJob9;
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = lang.stateJob9;
                             break;
                         default:
-                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = this.stateJob0;
+                            document.getElementById('jobsTable').rows[rowIdx].cells[2].innerHTML = lang.stateJob0;
                             console.log(state);
                     }
                 } else {
